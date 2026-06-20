@@ -1,33 +1,75 @@
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace RairCore.Controllers;
 
-// Image upload/delete will talk to Cloudinary instead of S3.
-// For now these are stubs — we wire Cloudinary in the next step.
 [ApiController]
 [Authorize]
-public class ImagesController : ControllerBase
+public class ImagesController(Cloudinary cloudinary) : ControllerBase
 {
-    // POST /image — receives base64 file, uploads to Cloudinary, returns public URL
+    // POST /image
+    // Receives a base64 image string (same format your old Lambda expected),
+    // uploads it to Cloudinary, and returns the public URL.
     [HttpPost("image")]
     public async Task<IActionResult> Upload([FromBody] ImageUploadRequest request)
     {
-        // TODO: integrate Cloudinary SDK
-        await Task.CompletedTask;
-        return Ok(new { imageUrl = "https://placeholder.com/image.jpg" });
+        // Strip the base64 prefix if present (e.g. "data:image/png;base64,...")
+        // then convert to a byte stream Cloudinary can read
+        var base64Data = request.FileData.Contains(',')
+            ? request.FileData.Split(',')[1]
+            : request.FileData;
+
+        var bytes = Convert.FromBase64String(base64Data);
+        using var stream = new MemoryStream(bytes);
+
+        var uploadParams = new ImageUploadParams
+        {
+            File = new FileDescription("upload", stream),
+            Folder = "rair-products",   // organises uploads in Cloudinary dashboard
+            UseFilename = false,
+            UniqueFilename = true,
+        };
+
+        var result = await cloudinary.UploadAsync(uploadParams);
+
+        if (result.Error is not null)
+            return BadRequest(new { error = result.Error.Message });
+
+        // Return the same shape your frontend already expects: { imageUrl: "..." }
+        return Ok(new { imageUrl = result.SecureUrl.ToString() });
     }
 
-    // DELETE /image?imageUrl=https://...
+    // DELETE /image?imageUrl=https://res.cloudinary.com/...
+    // Extracts the Cloudinary public_id from the URL and deletes the asset.
     [HttpDelete("image")]
     public async Task<IActionResult> Delete([FromQuery] string imageUrl)
     {
-        // TODO: extract Cloudinary public_id from URL and delete
-        await Task.CompletedTask;
-        return Ok(new { message = "Image deleted" });
+        // Cloudinary public_id is the path segment after /upload/vXXXXX/
+        // e.g. https://res.cloudinary.com/de9lwzbql/image/upload/v123/rair-products/abc.jpg
+        //      → public_id = "rair-products/abc"
+        var uri = new Uri(imageUrl);
+        var segments = uri.AbsolutePath.Split('/');
+        var uploadIndex = Array.IndexOf(segments, "upload");
+
+        if (uploadIndex < 0)
+            return BadRequest(new { error = "Invalid Cloudinary URL" });
+
+        // Skip "upload" and the version segment (v1234567), join the rest, remove extension
+        var publicIdWithExt = string.Join("/", segments[(uploadIndex + 2)..]);
+        var publicId = Path.GetFileNameWithoutExtension(publicIdWithExt);
+        var folder = Path.GetDirectoryName(publicIdWithExt)?.Replace('\\', '/');
+        var fullPublicId = string.IsNullOrEmpty(folder) ? publicId : $"{folder}/{publicId}";
+
+        var deleteParams = new DeletionParams(fullPublicId);
+        var result = await cloudinary.DestroyAsync(deleteParams);
+
+        if (result.Error is not null)
+            return BadRequest(new { error = result.Error.Message });
+
+        return Ok(new { message = "Image deleted", result = result.Result });
     }
 }
 
-// In C#, small data shapes for request bodies are often "records" — immutable, lightweight.
-// This is like a TypeScript type for the incoming JSON body.
 public record ImageUploadRequest(string FileData, string FileType);

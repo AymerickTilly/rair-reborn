@@ -1,3 +1,5 @@
+using System.Text;
+using CloudinaryDotNet;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -16,23 +18,40 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// JWT Authentication — validates the Bearer token on every [Authorize] route.
-// Supabase issues standard JWTs so this works out of the box.
+// JWT Authentication — Supabase signs tokens with HS256 (a shared secret),
+// not RS256 (public/private key). So we validate using the raw JWT secret,
+// not an Authority URL. This is the correct approach for Supabase.
+var jwtSecret = builder.Configuration["Supabase:JwtSecret"]
+    ?? throw new InvalidOperationException("Supabase:JwtSecret is not configured.");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        // Your Supabase project URL goes here (set in appsettings or env vars)
-        options.Authority = builder.Configuration["Supabase:Url"] + "/auth/v1";
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidIssuer = builder.Configuration["Supabase:Url"] + "/auth/v1",
-            ValidateAudience = false,   // Supabase doesn't set an audience claim
+            ValidateAudience = true,
+            ValidAudience = "authenticated",   // Supabase sets this for logged-in users
             ValidateLifetime = true,
+            // Convert the secret string into a signing key for HMAC-SHA256 validation
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidateIssuerSigningKey = true,
         };
     });
 
 builder.Services.AddAuthorization();
+
+// Register Cloudinary as a singleton — one instance shared across all requests.
+// In C#, a singleton means it's created once and reused (like a module-level object in JS).
+var cloudinaryConfig = builder.Configuration.GetSection("Cloudinary");
+var cloudinary = new Cloudinary(new Account(
+    cloudinaryConfig["CloudName"],
+    cloudinaryConfig["ApiKey"],
+    cloudinaryConfig["ApiSecret"]
+));
+cloudinary.Api.Secure = true;
+builder.Services.AddSingleton(cloudinary);
 
 // CORS — allows your Vercel frontend to call this API
 builder.Services.AddCors(options =>
