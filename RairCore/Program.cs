@@ -7,6 +7,11 @@ using RairCore.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Railway injects PORT as an env var — we tell ASP.NET to listen on it.
+// Locally it falls back to the port in launchSettings.json.
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // --- Services ---
 // "Services" in .NET = things you register once and inject anywhere.
 // This is like setting up middleware in Express, but more structured.
@@ -71,7 +76,6 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
-app.UseHttpsRedirection();
 app.UseCors("Frontend");
 app.UseAuthentication();   // 1. Parse and validate the JWT
 app.UseAuthorization();    // 2. Check if the route requires auth
