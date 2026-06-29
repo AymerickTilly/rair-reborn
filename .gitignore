@@ -9,6 +9,7 @@ obj/
 
 # Environment / secrets — never commit these
 appsettings.json
+**/.env
 appsettings.Development.json
 appsettings.Production.json
 *.env
