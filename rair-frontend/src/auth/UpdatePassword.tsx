@@ -1,11 +1,15 @@
-import { updatePassword, type UpdatePasswordInput } from 'aws-amplify/auth';
+import { supabase } from '../lib/supabase';
 
 async function handleUpdatePassword({
-  oldPassword,
   newPassword
-}: UpdatePasswordInput) {
+}: {
+  oldPassword?: string;
+  newPassword: string;
+}) {
   try {
-    await updatePassword({ oldPassword, newPassword });
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+    console.log('Password updated successfully.');
   } catch (err) {
     console.log(err);
   }

@@ -1,6 +1,3 @@
-import { Amplify } from 'aws-amplify';
-import config from './amplifyconfiguration.json';
-Amplify.configure(config);
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
