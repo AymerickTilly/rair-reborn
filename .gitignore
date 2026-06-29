@@ -19,3 +19,9 @@ appsettings.Production.json
 
 # VS Code
 .vscode/
+
+# Frontend binary assets (images served from Cloudinary instead)
+rair-frontend/src/assets/
+rair-frontend/Rair_Documentation.pdf
+rair-frontend/desktop.ini
+rair-frontend/dist/
