@@ -21,7 +21,10 @@ appsettings.Production.json
 .vscode/
 
 # Frontend binary assets (images served from Cloudinary instead)
-rair-frontend/src/assets/
+rair-frontend/src/assets/crew-neck/
+rair-frontend/src/assets/hoodies/
+rair-frontend/src/assets/knitwear/
+rair-frontend/src/assets/shirts/
 rair-frontend/Rair_Documentation.pdf
 rair-frontend/desktop.ini
 rair-frontend/dist/
