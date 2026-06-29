@@ -1,5 +1,6 @@
 // /api/deleteImage.ts
-import { getIdToken } from "../auth/AuthStore"; // Adjust path if needed
+import { getIdToken } from "../auth/AuthStore";
+import { API_BASE_URL } from "./config"; // Adjust path if needed
 
 export async function deleteImage(imageUrl: string): Promise<boolean> {
   try {
@@ -13,7 +14,7 @@ export async function deleteImage(imageUrl: string): Promise<boolean> {
 
     const encodedUrl = encodeURIComponent(imageUrl);
     const res = await fetch(
-      `https://yv9hvyex77.execute-api.ap-southeast-2.amazonaws.com/dev/image?imageUrl=${encodedUrl}`,
+      `${API_BASE_URL}/image?imageUrl=${encodedUrl}`,
       {
         method: "DELETE",
         headers: {

@@ -1,4 +1,4 @@
-import { signUp } from 'aws-amplify/auth';
+import { supabase } from '../lib/supabase';
 
 type SignUpParameters = {
   username: string;
@@ -6,31 +6,27 @@ type SignUpParameters = {
   email: string;
 };
 
-export async function handleSignUp({
-  username,
-  password,
-  email,
-}: SignUpParameters) {
+export async function handleSignUp({ username, password, email }: SignUpParameters) {
   try {
-    const { isSignUpComplete, userId, nextStep } = await signUp({
-      username,
+    const { data, error } = await supabase.auth.signUp({
+      email,
       password,
       options: {
-        userAttributes: {
-          email,
-        },
-        autoSignIn: false,
+        data: { username }, // stored in user_metadata
       },
     });
 
-    console.log("User ID:", userId);
+    if (error) throw error;
+
+    // Supabase sends a confirmation email automatically.
+    // isSignUpComplete is false until the user confirms their email.
     return {
-      isSignUpComplete,
-      userId,
-      nextStep,
+      isSignUpComplete: !!data.session, // session exists if email confirm is disabled
+      userId: data.user?.id,
+      nextStep: { signUpStep: 'CONFIRM_SIGN_UP' },
     };
   } catch (error) {
-    console.error("Error signing up:", error);
+    console.error('Error signing up:', error);
     throw error;
   }
 }

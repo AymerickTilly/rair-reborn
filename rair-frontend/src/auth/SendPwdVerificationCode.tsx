@@ -1,27 +1,15 @@
-import { resetPassword, type ResetPasswordOutput } from 'aws-amplify/auth';
+import { supabase } from '../lib/supabase';
 
+// Sends a password reset email — Supabase equivalent of Cognito's resetPassword()
 async function handleResetPassword(username: string) {
   try {
-    const output = await resetPassword({ username });
-    handleResetPasswordNextSteps(output);
+    const { error } = await supabase.auth.resetPasswordForEmail(username, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
+    console.log('Password reset email sent');
   } catch (error) {
     console.log(error);
-  }
-}
-
-function handleResetPasswordNextSteps(output: ResetPasswordOutput) {
-  const { nextStep } = output;
-  switch (nextStep.resetPasswordStep) {
-    case 'CONFIRM_RESET_PASSWORD_WITH_CODE':
-      { const codeDeliveryDetails = nextStep.codeDeliveryDetails;
-      console.log(
-        `Confirmation code was sent to ${codeDeliveryDetails.deliveryMedium}`
-      );
-      // Collect the confirmation code from the user and pass to confirmResetPassword.
-      break; }
-    case 'DONE':
-      console.log('Successfully reset password.');
-      break;
   }
 }
 

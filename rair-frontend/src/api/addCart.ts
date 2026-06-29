@@ -1,4 +1,5 @@
 import { getIdToken } from "../auth/AuthStore";
+import { API_BASE_URL } from "./config";
 import { Cart } from "../types/Cart";
 
 export async function addToCart(cartData: Cart): Promise<{ message: string; item: Cart } | null> {
@@ -13,7 +14,7 @@ export async function addToCart(cartData: Cart): Promise<{ message: string; item
 
     console.log("Sending POST request with cartData:", cartData);
     const res = await fetch(
-      "https://yv9hvyex77.execute-api.ap-southeast-2.amazonaws.com/dev/cart",
+      `${API_BASE_URL}/cart`,
       {
         method: "POST",
         headers: {

@@ -1,4 +1,5 @@
 import { getIdToken } from "../auth/AuthStore";
+import { API_BASE_URL } from "./config";
 
 export async function loadOrders() {
   const idToken = await getIdToken();
@@ -9,7 +10,7 @@ export async function loadOrders() {
     return null;
   }
 
-  const url = `https://yv9hvyex77.execute-api.ap-southeast-2.amazonaws.com/dev/orders`;
+  const url = `${API_BASE_URL}/orders`;
 
   const res = await fetch(url, {
     method: "GET",

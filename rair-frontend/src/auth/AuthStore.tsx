@@ -1,9 +1,7 @@
-// ✅ FILE: auth/AuthStore.ts
 import { create } from 'zustand';
-import { fetchAuthSession, getCurrentUser } from 'aws-amplify/auth';
+import { supabase } from '../lib/supabase';
 
 type AuthStore = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   user: any | null;
   userId: string;
   loading: boolean;
@@ -12,7 +10,6 @@ type AuthStore = {
   pendingUsername: string | null;
   passwordReset: boolean | null;
   address: string | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setUser: (user: any | null) => void;
   setLoading: (loading: boolean) => void;
   setEmail: (email: string | null) => void;
@@ -53,41 +50,40 @@ export const useAuthStore = create<AuthStore>((set) => ({
     }),
 }));
 
+// Called once on app load to restore session from Supabase.
+// Supabase persists the session in localStorage automatically.
 export const initAuth = async () => {
   const { setLoading, setUser, setEmail, setGroups, setUserId, resetAuth } = useAuthStore.getState();
   setLoading(true);
 
   try {
-    const user = await getCurrentUser();
-    const session = await fetchAuthSession();
-    const idToken = session.tokens?.idToken?.payload;
+    const { data: { session } } = await supabase.auth.getSession();
 
-    if (!idToken) throw new Error('No ID token found');
+    if (!session) {
+      resetAuth();
+      return;
+    }
 
-    const rawEmail = idToken.email;
-    const email = typeof rawEmail === 'string' ? rawEmail : null;
-    const rawGroups = idToken['cognito:groups'];
-    const groups = Array.isArray(rawGroups) && rawGroups.every((g) => typeof g === 'string') ? rawGroups : [];
-    const sub = idToken.sub;
-    if (typeof sub === 'string') setUserId(sub); // ✅ NEW: Save userId from token
+    const user = session.user;
+    // Supabase stores custom role in user_metadata or app_metadata
+    const role = user.app_metadata?.role ?? user.user_metadata?.role ?? 'Customer';
+    const groups = [role];
 
     setUser(user);
-    setEmail(email);
+    setEmail(user.email ?? null);
     setGroups(groups);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    if (error.name === 'UserUnAuthenticatedException') {
-      console.log('User not signed in yet');
-    } else {
-      console.error('Error initializing auth:', error);
-    }
+    setUserId(user.id);
+  } catch (error) {
+    console.error('Error initializing auth:', error);
     resetAuth();
   } finally {
     setLoading(false);
   }
 };
 
-export const getIdToken = async () => {
-  const session = await fetchAuthSession();
-  return session.tokens?.idToken?.toString() || null;
+// Returns the current JWT access token — used in every API call header.
+// Supabase equivalent of Cognito's fetchAuthSession().tokens.idToken
+export const getIdToken = async (): Promise<string | null> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ?? null;
 };

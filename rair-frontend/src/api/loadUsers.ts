@@ -1,4 +1,5 @@
 import { getIdToken } from "../auth/AuthStore";
+import { API_BASE_URL } from "./config";
 
 export async function loadUsers() {
 
@@ -10,7 +11,7 @@ export async function loadUsers() {
         return null;
     }
 
-    const res = await fetch("https://yv9hvyex77.execute-api.ap-southeast-2.amazonaws.com/dev/users", {
+    const res = await fetch(`${API_BASE_URL}/users`, {
     method: "GET",
     headers: {
         "Content-Type": "application/json",

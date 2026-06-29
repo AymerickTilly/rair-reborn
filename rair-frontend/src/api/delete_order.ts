@@ -1,5 +1,6 @@
 // /api/deleteProduct.ts
-import { getIdToken } from "../auth/AuthStore"; // Adjust path if needed
+import { getIdToken } from "../auth/AuthStore";
+import { API_BASE_URL } from "./config"; // Adjust path if needed
 
 export async function deleteOrder(orderId: string): Promise<boolean> {
   try {
@@ -11,7 +12,7 @@ export async function deleteOrder(orderId: string): Promise<boolean> {
 
     const encodedId = encodeURIComponent(orderId);
     const res = await fetch(
-      `https://yv9hvyex77.execute-api.ap-southeast-2.amazonaws.com/dev/order?orderId=${encodedId}`,
+      `${API_BASE_URL}/order?orderId=${encodedId}`,
       {
         method: "DELETE",
         headers: {

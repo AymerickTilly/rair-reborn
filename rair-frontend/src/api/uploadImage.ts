@@ -1,4 +1,5 @@
-import { getIdToken } from "../auth/AuthStore"; // adjust path if necessary
+import { getIdToken } from "../auth/AuthStore";
+import { API_BASE_URL } from "./config"; // adjust path if necessary
 
 export const uploadImage = async (file: File): Promise<string | null> => {
   return new Promise((resolve) => {
@@ -26,7 +27,7 @@ export const uploadImage = async (file: File): Promise<string | null> => {
         }
 
         const res = await fetch(
-          "https://yv9hvyex77.execute-api.ap-southeast-2.amazonaws.com/dev/image",
+          `${API_BASE_URL}/image`,
           {
             method: "POST",
             headers: {

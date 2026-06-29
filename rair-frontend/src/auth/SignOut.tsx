@@ -1,4 +1,4 @@
-import { signOut as amplifySignOut } from 'aws-amplify/auth';
+import { supabase } from '../lib/supabase';
 import { useAuthStore } from './AuthStore';
 
 export const signOut = async () => {
@@ -6,12 +6,12 @@ export const signOut = async () => {
 
   try {
     setLoading(true);
-    await amplifySignOut();
+    await supabase.auth.signOut();
   } catch (error) {
     console.error('Error during sign out:', error);
   } finally {
-    resetAuth(); // Clear Zustand store state
-    setLoading(false); // Reset loading state
+    resetAuth();
+    setLoading(false);
     localStorage.removeItem('lastLocation');
   }
 };

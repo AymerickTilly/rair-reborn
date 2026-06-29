@@ -1,4 +1,5 @@
-import { getIdToken } from "../auth/AuthStore"; // Update the path if needed
+import { getIdToken } from "../auth/AuthStore";
+import { API_BASE_URL } from "./config"; // Update the path if needed
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function addProduct(productData: any): Promise<any | null> {
@@ -11,7 +12,7 @@ export async function addProduct(productData: any): Promise<any | null> {
       return null;
     }
 
-    const res = await fetch("https://yv9hvyex77.execute-api.ap-southeast-2.amazonaws.com/dev/product", {
+    const res = await fetch(`${API_BASE_URL}/product`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

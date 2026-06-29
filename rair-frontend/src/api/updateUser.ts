@@ -1,4 +1,5 @@
 import { getIdToken } from "../auth/AuthStore";
+import { API_BASE_URL } from "./config";
 import { User } from "../types/User";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,7 +15,7 @@ export async function updateUser(userData: User): Promise<any | null> {
 
     console.log("Sending PUT request with updateUser:", userData);
     const res = await fetch(
-      "https://yv9hvyex77.execute-api.ap-southeast-2.amazonaws.com/dev/user",
+      `${API_BASE_URL}/user`,
       {
         method: "PUT",
         headers: {

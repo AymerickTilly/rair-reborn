@@ -1,5 +1,6 @@
 // /api/deleteProduct.ts
-import { getIdToken } from "../auth/AuthStore"; // Adjust path if needed
+import { getIdToken } from "../auth/AuthStore";
+import { API_BASE_URL } from "./config"; // Adjust path if needed
 import { Cart } from "../types/Cart";
 
 export async function deleteCart(cart: Cart): Promise<boolean> {
@@ -14,7 +15,7 @@ export async function deleteCart(cart: Cart): Promise<boolean> {
     const encodedCartId = encodeURIComponent(cart.cartId);
 
     const res = await fetch(
-      `https://yv9hvyex77.execute-api.ap-southeast-2.amazonaws.com/dev/cart?userId=${encodedUserId}&cartId=${encodedCartId}`,
+      `${API_BASE_URL}/cart?userId=${encodedUserId}&cartId=${encodedCartId}`,
       {
         method: "DELETE",
         headers: {

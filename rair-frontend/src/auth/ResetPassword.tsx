@@ -1,12 +1,12 @@
-import { confirmResetPassword, type ConfirmResetPasswordInput } from 'aws-amplify/auth';
+import { supabase } from '../lib/supabase';
 
-async function handleConfirmResetPassword({
-  username,
-  confirmationCode,
-  newPassword
-}: ConfirmResetPasswordInput) {
+// Called after user clicks the reset link in their email.
+// Supabase handles the token automatically via the URL hash.
+async function handleConfirmResetPassword({ newPassword }: { username?: string; confirmationCode?: string; newPassword: string }) {
   try {
-    await confirmResetPassword({ username, confirmationCode, newPassword });
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+    console.log('Successfully reset password.');
   } catch (error) {
     console.log(error);
   }
