@@ -9,7 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Railway injects PORT as an env var — we tell ASP.NET to listen on it.
 // Locally it falls back to the port in launchSettings.json.
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+var port = Environment.GetEnvironmentVariable("PORT")
+    ?? Environment.GetEnvironmentVariable("HTTP_PORTS")
+    ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 // --- Services ---
