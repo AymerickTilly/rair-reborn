@@ -1,0 +1,84 @@
+/* Page background and base text color */
+body, .shop-container {
+  background-color: #333333; /* Main page background (cool blue) */
+  color: #ffffff;            /* Default text color (white) */
+}
+
+/* Search bar styling */
+.shop-container .form-control {
+  background-color: #ffffffe4; /* White input background */
+  color: #000000;            /* Black input text */
+  border: 1px solid #030303; /* White border */
+}
+.shop-container .form-control::placeholder {
+  color: #000000; /* Dim gray placeholder */
+}
+
+/* Product card styling */
+.shop-card {
+  background-color: #ebe8e8ce; /* Darker transparent black */
+  color: #000000;
+  border: none;
+  border-radius: 12px; /* Rounded corners */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Default shadow like Home */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Card hover effect */
+.shop-card:hover {
+  transform: translateY(-6px); /* Lift effect */
+  box-shadow: 0 8px 24px rgb(246, 244, 244); /* Stronger hover shadow */
+}
+
+/* Size stock tags (S, M, L) */
+.shop-stock-tag {
+  background-color: #ffffff;      /* White tag background */
+  color: #fbf8f8;                 /* Black text for size and stock */
+  border: 1px solid #000000;
+  border-radius: 6px;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+/* Size tag hover effect */
+.shop-stock-tag:hover {
+  background-color: #00000059;    /* Dark transparent background */
+  color: #fffbfb;                 /* White text on hover */
+  transform: scale(1.05);         /* Slight zoom */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal styling */
+.modal-content {
+  background-color: #e5e2e2;
+  color: #000000;
+  border-radius: 10px;
+}
+
+/* Primary button (Add to Cart) */
+.shop-button {
+  background-color: #000000;
+  color: #ffffff;
+  border: none;
+  transition: background-color 0.3s ease;
+  border-radius: 8px;
+}
+
+.shop-button:hover {
+  background-color: #bdbdc4;
+}
+
+/* Secondary button (Close) */
+.shop-secondary-button {
+  background-color: #000000;
+  color: #fff;
+  border: none;
+  transition: background-color 0.3s ease;
+  border-radius: 8px;
+}
+
+.shop-secondary-button:hover {
+  background-color: #ededed;
+  color: #000;
+}

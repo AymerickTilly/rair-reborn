@@ -1,0 +1,18 @@
+.nav-link-custom {
+  color: #000000b3;
+  text-decoration: none;
+  transition: box-shadow 0.2s ease;
+  padding: 0.5rem 1rem;
+  display: inline-block;
+}
+
+.nav-link-custom:hover {
+  text-decoration: none;
+  color: #000000;
+}
+
+.nav-link-custom.active { 
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.651);
+  font-weight: 500;
+  border-radius: 6px;
+}

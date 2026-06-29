@@ -1,0 +1,97 @@
+/* General page styling */
+
+.text-shadow {
+  text-shadow: 2px 2px 6px rgba(243, 243, 243, 0.342);
+}
+
+.home-page {
+  background-color: #333333;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+
+
+/* Carousel card container */
+.carousel-card-wrapper {
+  flex: 0 1 45%;
+  max-width: 700px;
+  height: 500px;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+/* Carousel card itself */
+.carousel-card {
+  position: relative; /* Needed for caption positioning */
+  background-color: #0000009e;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden; /* Ensures captions don’t overflow */
+}
+
+/* Carousel inner layout */
+.carousel-card .carousel,
+.carousel-card .carousel-item {
+  height: 100%;
+}
+
+.carousel-card img {
+  height: 100%;
+  width: 110%;
+  object-fit: cover;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+
+
+/* Hover effect for card */
+.carousel-card:hover {
+  box-shadow: 0 8px 24px rgba(222, 222, 222, 0.5);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Mission statement styling */
+.mission-statement-card {
+  background-color: #00000000;
+  color: #ffffff;
+  max-width: 700px;
+  margin: 0 auto 30px auto;
+  padding: 20px 30px;
+  border-radius: 12px;
+  font-family: Arial, sans-serif;
+  font-size: 1.3rem;
+  text-align: center;
+  text-shadow: 1px 1px 4px rgb(34, 34, 34);
+}
+
+/* Modal image styling */
+.modal-body img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.carousel-item {
+  position: relative;
+  padding-bottom: 40px;
+}
+
+.carousel-card img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+
+.carousel-caption {
+  min-height: 40px; /* Optional, but helpful */
+}
