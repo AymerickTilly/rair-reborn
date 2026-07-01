@@ -24,18 +24,25 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// JWT Authentication — Supabase signs tokens with HS256 (a shared secret),
-// not RS256 (public/private key). So we validate using the raw JWT secret,
-// not an Authority URL. This is the correct approach for Supabase.
-// Supabase newer projects use ES256 (asymmetric). We validate via the JWKS endpoint
-// so the middleware fetches the public key automatically — no shared secret needed.
+// Supabase newer projects use ES256 (asymmetric EC key).
+// We load the public key directly from the JWKS values — no network call needed at startup.
 var supabaseUrl = builder.Configuration["Supabase:Url"]
     ?? throw new InvalidOperationException("Supabase:Url is not configured.");
+
+var jwk = new JsonWebKey
+{
+    Alg = "ES256",
+    Crv = "P-256",
+    Kty = "EC",
+    Use = "sig",
+    Kid = "95e1fb27-a881-4aee-ba8a-c14760bf67b9",
+    X   = "3yTr3Cuwa59E8diwZj0zTP5gg02rHQNPdekVwHRcPtM",
+    Y   = "JcRGiinvHIpwbZl_Dtic9H3U66jxBlZEx4iUqcwJTxY",
+};
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = supabaseUrl + "/auth/v1";
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -44,6 +51,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = "authenticated",
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            IssuerSigningKey = jwk,
         };
     });
 
