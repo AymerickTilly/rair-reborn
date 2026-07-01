@@ -50,35 +50,60 @@ export const useAuthStore = create<AuthStore>((set) => ({
     }),
 }));
 
+const applySession = async (session: import('@supabase/supabase-js').Session | null) => {
+  const { setUser, setEmail, setGroups, setUserId, resetAuth, setLoading } = useAuthStore.getState();
+
+  if (!session) {
+    resetAuth();
+    return;
+  }
+
+  const user = session.user;
+  const role = user.app_metadata?.role ?? user.user_metadata?.role ?? 'Customer';
+
+  setUser(user);
+  setEmail(user.email ?? null);
+  setGroups([role]);
+  setUserId(user.id);
+  setLoading(false);
+
+  // If this is a new sign-up confirmation, create the user record in our DB
+  if (session.user.confirmed_at && !session.user.last_sign_in_at) {
+    try {
+      const { addUser } = await import('../api/addUser');
+      const { address } = useAuthStore.getState();
+      await addUser({
+        userId: user.id,
+        username: user.email ?? '',
+        address: address ?? '',
+      });
+      useAuthStore.getState().setPendingUsername(null);
+    } catch (err) {
+      console.error('Failed to create user record:', err);
+    }
+  }
+};
+
 // Called once on app load to restore session from Supabase.
 // Supabase persists the session in localStorage automatically.
 export const initAuth = async () => {
-  const { setLoading, setUser, setEmail, setGroups, setUserId, resetAuth } = useAuthStore.getState();
+  const { setLoading } = useAuthStore.getState();
   setLoading(true);
 
   try {
     const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-      resetAuth();
-      return;
-    }
-
-    const user = session.user;
-    // Supabase stores custom role in user_metadata or app_metadata
-    const role = user.app_metadata?.role ?? user.user_metadata?.role ?? 'Customer';
-    const groups = [role];
-
-    setUser(user);
-    setEmail(user.email ?? null);
-    setGroups(groups);
-    setUserId(user.id);
+    await applySession(session);
   } catch (error) {
     console.error('Error initializing auth:', error);
-    resetAuth();
+    useAuthStore.getState().resetAuth();
   } finally {
-    setLoading(false);
+    useAuthStore.getState().setLoading(false);
   }
+
+  // Listen for auth events — handles email confirmation callback automatically
+  supabase.auth.onAuthStateChange(async (_event, session) => {
+    await applySession(session);
+  });
 };
 
 // Returns the current JWT access token — used in every API call header.
