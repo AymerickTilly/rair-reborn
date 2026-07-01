@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 async function handleResetPassword(username: string) {
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(username, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/resetPassword`,
     });
     if (error) throw error;
     console.log('Password reset email sent');
