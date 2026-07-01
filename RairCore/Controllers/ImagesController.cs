@@ -44,14 +44,17 @@ public class ImagesController(Cloudinary cloudinary) : ControllerBase
     // GET /images?folder=hoodies
     // Returns all image URLs in a given Cloudinary folder
     [HttpGet("images")]
+    [AllowAnonymous]
     public async Task<IActionResult> ListImages([FromQuery] string folder)
     {
-        var result = await cloudinary.ListResourcesByPrefixAsync(folder, tags: false, context: false, moderations: false);
+        // Append "/" so we match "crew-neck/file.jpg" and not "crew-neck-other/..."
+        var prefix = folder.TrimEnd('/') + "/";
+        var result = await cloudinary.ListResourcesByPrefixAsync(prefix, tags: false, context: false, moderations: false);
         if (result.Error is not null)
             return BadRequest(new { error = result.Error.Message });
 
         var urls = result.Resources.Select(r => r.SecureUrl.ToString()).ToList();
-        return Ok(urls);
+        return Ok(new { prefix, count = urls.Count, urls });
     }
 
     // DELETE /image?imageUrl=https://res.cloudinary.com/...
