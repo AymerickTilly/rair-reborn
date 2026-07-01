@@ -47,14 +47,17 @@ public class ImagesController(Cloudinary cloudinary) : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> ListImages([FromQuery] string folder)
     {
-        // Append "/" so we match "crew-neck/file.jpg" and not "crew-neck-other/..."
-        var prefix = folder.TrimEnd('/') + "/";
-        var result = await cloudinary.ListResourcesByPrefixAsync(prefix, tags: false, context: false, moderations: false);
-        if (result.Error is not null)
-            return BadRequest(new { error = result.Error.Message });
+        // Use Search API — works with both fixed and dynamic folder modes
+        var searchResult = await cloudinary.Search()
+            .Expression($"asset_folder=\"{folder}\"")
+            .MaxResults(100)
+            .ExecuteAsync();
 
-        var urls = result.Resources.Select(r => r.SecureUrl.ToString()).ToList();
-        return Ok(new { prefix, count = urls.Count, urls });
+        if (searchResult.Error is not null)
+            return BadRequest(new { error = searchResult.Error.Message });
+
+        var urls = searchResult.Resources?.Select(r => r.SecureUrl).ToList() ?? [];
+        return Ok(urls);
     }
 
     // DELETE /image?imageUrl=https://res.cloudinary.com/...
