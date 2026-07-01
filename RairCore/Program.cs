@@ -1,4 +1,3 @@
-using System.Text;
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -28,21 +27,22 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // JWT Authentication — Supabase signs tokens with HS256 (a shared secret),
 // not RS256 (public/private key). So we validate using the raw JWT secret,
 // not an Authority URL. This is the correct approach for Supabase.
-var jwtSecret = builder.Configuration["Supabase:JwtSecret"]
-    ?? throw new InvalidOperationException("Supabase:JwtSecret is not configured.");
+// Supabase newer projects use ES256 (asymmetric). We validate via the JWKS endpoint
+// so the middleware fetches the public key automatically — no shared secret needed.
+var supabaseUrl = builder.Configuration["Supabase:Url"]
+    ?? throw new InvalidOperationException("Supabase:Url is not configured.");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Authority = supabaseUrl + "/auth/v1";
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Supabase:Url"] + "/auth/v1",
+            ValidIssuer = supabaseUrl + "/auth/v1",
             ValidateAudience = true,
-            ValidAudience = "authenticated",   // Supabase sets this for logged-in users
+            ValidAudience = "authenticated",
             ValidateLifetime = true,
-            // Convert the secret string into a signing key for HMAC-SHA256 validation
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
             ValidateIssuerSigningKey = true,
         };
     });
