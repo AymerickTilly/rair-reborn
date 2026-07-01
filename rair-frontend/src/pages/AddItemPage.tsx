@@ -26,10 +26,7 @@ const AddItemPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      // backend returns { prefix, count, urls } for debugging
-      const images = Array.isArray(data) ? data : (data.urls ?? []);
-      console.log("[ImagePicker] folder response:", data);
-      setFolderImages(images);
+      setFolderImages(Array.isArray(data) ? data : (data.urls ?? []));
     } catch (e) {
       console.error(e);
     } finally {

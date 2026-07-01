@@ -44,7 +44,6 @@ public class ImagesController(Cloudinary cloudinary) : ControllerBase
     // GET /images?folder=hoodies
     // Returns all image URLs in a given Cloudinary folder
     [HttpGet("images")]
-    [AllowAnonymous]
     public async Task<IActionResult> ListImages([FromQuery] string folder)
     {
         // Use Search API — works with both fixed and dynamic folder modes
