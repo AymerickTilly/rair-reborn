@@ -5,11 +5,12 @@ import { useForm } from 'react-hook-form';
 import { Container, Form, Button, Row, Col } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../auth/AuthStore';
+import { addUser } from '../api/addUser';
 import backgroundImage from '../assets/background-texture.png';
 
 const RegisterForm = () => {
   const navigate = useNavigate();
-  const { resetAuth, setLoading, setPendingUsername, setAddress } = useAuthStore();
+  const { setPendingUsername, setAddress } = useAuthStore();
 
   const {
     register,
@@ -29,17 +30,19 @@ const RegisterForm = () => {
       });
       console.log('SignUp Result:', result);
       if (!result?.isSignUpComplete) {
+        // Email confirmation required — show "check your email" page
         setPendingUsername(data.username);
         setAddress(data.address);
-        console.log('Set pendingUsername:', useAuthStore.getState().pendingUsername);
-        console.log('Set address:', useAuthStore.getState().address);
-        console.log('Navigate to confirmRegister');
         setTimeout(() => navigate('/confirmRegister'), 0);
       } else {
-        console.log('Impossible de naviguer vers confirmRegister');
-        resetAuth();
-        setLoading(false);
-        navigate('/login');
+        // Email confirmation disabled — session is live immediately
+        const userId = result.userId ?? '';
+        await addUser({
+          userId,
+          username: data.username,
+          address: data.address,
+        });
+        navigate('/');
       }
     } catch (err) {
       console.error('Signup error:', err);
