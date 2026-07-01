@@ -3,20 +3,38 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { addItemSchema, TAddItemSchema } from "../schemas/TaddItemSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
-import { uploadImage } from "../api/uploadImage";
 import { addProduct } from "../api/addProduct";
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from "react-router";
+import { getIdToken } from "../auth/AuthStore";
+import { API_BASE_URL } from "../api/config";
+
+const FOLDERS = ["crew-neck", "hoodies", "knitwear", "shirts"];
 
 const AddItemPage = () => {
-  const [uploadedImageUrl, setUploadedImageUrl] = React.useState<string | null>(null);
+  const [selectedImageUrl, setSelectedImageUrl] = React.useState<string | null>(null);
+  const [folder, setFolder] = React.useState(FOLDERS[0]);
+  const [folderImages, setFolderImages] = React.useState<string[]>([]);
+  const [loadingImages, setLoadingImages] = React.useState(false);
   const navigate = useNavigate();
 
-  const backToAdminBoard = () => {
-    reset();
-    setUploadedImageUrl(null);
-    navigate("/admin");
-  }
+  const loadImages = async (f: string) => {
+    setLoadingImages(true);
+    try {
+      const token = await getIdToken();
+      const res = await fetch(`${API_BASE_URL}/images?folder=${f}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setFolderImages(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingImages(false);
+    }
+  };
+
+  React.useEffect(() => { loadImages(folder); }, [folder]);
 
   const {
     register,
@@ -27,51 +45,37 @@ const AddItemPage = () => {
   } = useForm<TAddItemSchema>({
     resolver: zodResolver(addItemSchema),
     defaultValues: {
-      stock: [{ size: "M",  stockAmount: 0 }],
+      stock: [{ size: "M", stockAmount: 0 }],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "stock",
-  });
+  const { fields, append, remove } = useFieldArray({ control, name: "stock" });
+
+  const backToAdminBoard = () => {
+    reset();
+    setSelectedImageUrl(null);
+    navigate("/admin");
+  };
 
   const onSubmit = async (data: TAddItemSchema) => {
-
-  const productId = uuidv4();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { image, ...rest } = data;
-
-  if (!data.image) {
-    alert("Please select an image.");
-    return;
-  }
-
-  try {
-    const imageUrl = await uploadImage(data.image[0]); // Upload image first
-
-    if (!imageUrl) {
-      alert("Image upload failed.");
-      reset();
+    if (!selectedImageUrl) {
+      alert("Please select an image from Cloudinary.");
       return;
     }
-
-    const productData = {
-      productId,
-      ...rest,
-      imageUrl,
-    };
-
-    await addProduct(productData); // Then POST to DynamoDB
-    // change here to show a message product added:
-    reset();
-    setUploadedImageUrl(null);
-  } catch (err) {
-    console.error("Error adding product:", err);
-    alert("Failed to add product.");
-    reset();
-  }
-};
+    const productId = uuidv4();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { image, ...rest } = data;
+    try {
+      await addProduct({ productId, ...rest, imageUrl: selectedImageUrl });
+      alert("Product added!");
+      reset();
+      setSelectedImageUrl(null);
+      navigate("/admin");
+    } catch (err) {
+      console.error("Error adding product:", err);
+      alert("Failed to add product.");
+    }
+  };
 
   return (
     <Container className="my-5">
@@ -91,12 +95,7 @@ const AddItemPage = () => {
 
         <Form.Group className="mb-3">
           <Form.Label>Description</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={3}
-            {...register("description")}
-            isInvalid={!!errors.description}
-          />
+          <Form.Control as="textarea" rows={3} {...register("description")} isInvalid={!!errors.description} />
           <Form.Control.Feedback type="invalid">{errors.description?.message}</Form.Control.Feedback>
         </Form.Group>
 
@@ -113,9 +112,7 @@ const AddItemPage = () => {
               <Form.Label>Size</Form.Label>
               <Form.Select {...register(`stock.${index}.size` as const)}>
                 {(["XS", "S", "M", "L", "XL", "XXL"] as const).map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
+                  <option key={s} value={s}>{s}</option>
                 ))}
               </Form.Select>
             </Col>
@@ -124,50 +121,63 @@ const AddItemPage = () => {
               <Form.Control type="number" {...register(`stock.${index}.stockAmount` as const)} />
             </Col>
             <Col md={2}>
-              <Button variant="danger" onClick={() => remove(index)}>
-                Remove
-              </Button>
+              <Button variant="danger" onClick={() => remove(index)}>Remove</Button>
             </Col>
           </Row>
         ))}
-        <Button
-          variant="secondary"
-          className="mb-3"
-          onClick={() => append({ size: "M", stockAmount: 0 })}
-        >
+        <Button variant="secondary" className="mb-3" onClick={() => append({ size: "M", stockAmount: 0 })}>
           Add Stock
         </Button>
 
+        {/* Cloudinary image picker */}
         <Form.Group className="mb-3">
-          <Form.Label>Image</Form.Label>
-          <Form.Control
-            type="file"
-            accept="image/*"
-            {...register("image")}
-            isInvalid={!!errors.image}
-          />
-          <Form.Control.Feedback type="invalid">{errors.image?.message as string}</Form.Control.Feedback>
-          {uploadedImageUrl && (
-            <div className="mt-2">
-              <strong>Uploaded Image Preview:</strong>
-              <br />
-              <img src={uploadedImageUrl} alt="Uploaded" style={{ maxWidth: "200px", marginTop: "10px" }} />
-            </div>
-          )}
+          <Form.Label>Image Folder</Form.Label>
+          <Form.Select value={folder} onChange={e => { setFolder(e.target.value); setSelectedImageUrl(null); }}>
+            {FOLDERS.map(f => <option key={f} value={f}>{f}</option>)}
+          </Form.Select>
         </Form.Group>
 
-        <Button type="submit" className="w-100">
-          {isSubmitting ? "Submitting..." : "Add Product"}
+        {loadingImages ? (
+          <p>Loading images…</p>
+        ) : (
+          <div className="mb-3">
+            <Form.Label>Select an image</Form.Label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+              {folderImages.map(url => (
+                <img
+                  key={url}
+                  src={url}
+                  alt=""
+                  onClick={() => setSelectedImageUrl(url)}
+                  style={{
+                    width: "120px",
+                    height: "120px",
+                    objectFit: "cover",
+                    cursor: "pointer",
+                    border: selectedImageUrl === url ? "3px solid #0d6efd" : "3px solid transparent",
+                    borderRadius: "6px",
+                  }}
+                />
+              ))}
+            </div>
+            {folderImages.length === 0 && <p className="text-muted">No images found in this folder.</p>}
+          </div>
+        )}
+
+        {selectedImageUrl && (
+          <div className="mb-3">
+            <Form.Label>Selected Image</Form.Label><br />
+            <img src={selectedImageUrl} alt="Selected" style={{ maxWidth: "200px", borderRadius: "6px" }} />
+          </div>
+        )}
+
+        <Button type="submit" className="w-100" disabled={isSubmitting}>
+          {isSubmitting ? "Submitting…" : "Add Product"}
         </Button>
 
-        <Button
-          variant="danger"
-          className="mt-3 w-100"
-          onClick={backToAdminBoard}
-          >
+        <Button variant="danger" className="mt-3 w-100" onClick={backToAdminBoard}>
           Cancel & Return to Admin
         </Button>
-
       </Form>
     </Container>
   );

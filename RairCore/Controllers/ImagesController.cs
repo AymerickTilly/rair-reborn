@@ -41,6 +41,19 @@ public class ImagesController(Cloudinary cloudinary) : ControllerBase
         return Ok(new { imageUrl = result.SecureUrl.ToString() });
     }
 
+    // GET /images?folder=hoodies
+    // Returns all image URLs in a given Cloudinary folder
+    [HttpGet("images")]
+    public async Task<IActionResult> ListImages([FromQuery] string folder)
+    {
+        var result = await cloudinary.ListResourcesByPrefixAsync(folder, tags: false, context: false, moderations: false);
+        if (result.Error is not null)
+            return BadRequest(new { error = result.Error.Message });
+
+        var urls = result.Resources.Select(r => r.SecureUrl.ToString()).ToList();
+        return Ok(urls);
+    }
+
     // DELETE /image?imageUrl=https://res.cloudinary.com/...
     // Extracts the Cloudinary public_id from the URL and deletes the asset.
     [HttpDelete("image")]

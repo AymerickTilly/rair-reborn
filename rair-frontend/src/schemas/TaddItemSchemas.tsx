@@ -9,11 +9,7 @@ export const addItemSchema = z.object({
     size: z.enum(["XS", "S", "M", "L", "XL", "XXL"]),
     stockAmount: z.coerce.number().int().min(0, "Stock must be at least 0"),
   })),
-  image: z
-    .any()
-    .refine((files) => files instanceof FileList && files.length === 1, {
-      message: "Image is required",
-    }),
+  image: z.any().optional(),
 });
 
 export type TAddItemSchema = z.infer<typeof addItemSchema>;
