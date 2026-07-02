@@ -171,9 +171,9 @@ const Checkout = () => {
           console.warn(`${failedOps.length} product(s) failed to process (delete/update).`);
         }
 
-        alert(`Order placed successfully!\nOrder ID: ${response.item.orderId}`);
+        alert(`Order placed successfully!\nOrder ID: ${response.orderId}`);
         navigate('/listOrdersPage', {
-          state: { orderId: response.item.orderId }
+          state: { orderId: response.orderId }
         });
       } else {
         alert('Failed to place order.');
