@@ -155,6 +155,11 @@ const Checkout = () => {
 
               const updateSuccess = await updateProduct({
                 productId: product.productId,
+                name: productData.name,
+                description: productData.description,
+                category: productData.category,
+                imageUrl: productData.imageUrl,
+                price: productData.price,
                 stock: updatedStockArray,
               });
 
