@@ -88,7 +88,7 @@ const Checkout = () => {
         status: "PENDING",
         products: products.map(p => ({
           cartId: p.cartId,
-          id: p.id,
+          productId: p.id,
           name: p.name,
           image: p.image,
           quantity: p.quantity,
@@ -128,16 +128,16 @@ const Checkout = () => {
               });
 
               // Load product stock
-              const productData = await loadProductById(product.id);
+              const productData = await loadProductById(product.productId);
               if (!productData || !productData.stock) {
-                console.warn(`Invalid product or stock data for product ID ${product.id}`);
+                console.warn(`Invalid product or stock data for product ID ${product.productId}`);
                 return false;
               }
 
               const stockMap = stockArrayToMap(productData.stock);
 
               if (typeof stockMap[product.size] !== 'number') {
-                console.warn(`Invalid stock data for product ID ${product.id}, size ${product.size}`, productData.stock);
+                console.warn(`Invalid stock data for product ID ${product.productId}, size ${product.size}`, productData.stock);
                 return false;
               }
 
@@ -145,7 +145,7 @@ const Checkout = () => {
               const new_stock = current_stock - product.quantity;
 
               if (new_stock < 0) {
-                console.warn(`Stock would go negative for product ${product.id} (${product.size})`);
+                console.warn(`Stock would go negative for product ${product.productId} (${product.size})`);
                 return false;
               }
 
@@ -154,13 +154,13 @@ const Checkout = () => {
               );
 
               const updateSuccess = await updateProduct({
-                productId: product.id,
+                productId: product.productId,
                 stock: updatedStockArray,
               });
 
               return deleteSuccess && updateSuccess;
             } catch (err) {
-              console.error(`Error processing product ${product.id}:`, err);
+              console.error(`Error processing product ${product.productId}:`, err);
               return false;
             }
           })
