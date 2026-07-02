@@ -114,12 +114,9 @@ const UpdateItemPage = () => {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { image, ...rest } = data;
-
     const updatedProduct = {
       productId: selectedProduct.productId,
-      ...rest,
+      ...data,
       imageUrl: selectedImageUrl,
     };
 

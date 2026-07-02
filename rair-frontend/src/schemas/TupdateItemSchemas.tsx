@@ -9,9 +9,6 @@ export const updateItemSchema = z.object({
     size: z.enum(["XS", "S", "M", "L", "XL", "XXL"]),
     stockAmount: z.coerce.number().int().min(0, "Stock must be at least 0"),
   })),
-  image: z
-    .any()
-    .optional(), // since image might not be changed
 });
 
 export type TUpdateItemSchema = z.infer<typeof updateItemSchema>;

@@ -63,10 +63,8 @@ const AddItemPage = () => {
       return;
     }
     const productId = uuidv4();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { image, ...rest } = data;
     try {
-      await addProduct({ productId, ...rest, imageUrl: selectedImageUrl });
+      await addProduct({ productId, ...data, imageUrl: selectedImageUrl });
       alert("Product added!");
       reset();
       setSelectedImageUrl(null);
