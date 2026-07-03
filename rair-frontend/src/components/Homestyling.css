@@ -450,6 +450,19 @@
 }
 
 /* ═══════════════════════════════════════
+   LARGE PHONE / SMALL TABLET (≤ 768px)
+   ═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  .brand-story__inner { grid-template-columns: 1fr; gap: 3rem; }
+  .brand-story__block--aside {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--rair-border);
+    padding-top: 3rem;
+  }
+}
+
+/* ═══════════════════════════════════════
    PHONE (≤ 480px)
    ═══════════════════════════════════════ */
 @media (max-width: 480px) {
@@ -470,10 +483,9 @@
   .hero__cta { width: 100%; }
   .hero__cta .btn-rair { width: 100%; justify-content: center; }
 
-  /* Brand story */
+  /* Brand story — tighten padding on phone (column already stacked at 768px) */
   .brand-story { padding: 3.5rem 0 3rem; }
-  .brand-story__inner { grid-template-columns: 1fr; gap: 3rem; padding: 0 1rem; }
-  .brand-story__block--aside { border-left: none; padding-left: 0; border-top: 1px solid var(--rair-border); padding-top: 3rem; }
+  .brand-story__inner { padding: 0 1rem; }
 
   /* Carousel */
   .product-carousel { max-width: 100%; grid-template-columns: 2.75rem 1fr 2.75rem; }

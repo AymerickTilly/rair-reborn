@@ -338,6 +338,10 @@
   /* Touch target for quick-view overlay */
   .product-card__quick-label { display: none; }
 
+  /* Category tabs on phone */
+  .shop__tabs { margin-bottom: 1.5rem; }
+  .shop-tab { padding: 0.5rem 0.875rem; font-size: 0.6875rem; }
+
   /* Modal: nearly full-screen on phone */
   .shop-modal .modal-dialog { max-width: calc(100vw - 1rem); margin: 0.5rem auto; }
   .shop-modal__img { height: 200px; }
