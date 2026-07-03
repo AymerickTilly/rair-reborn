@@ -84,7 +84,15 @@ const ListOrdersPage = () => {
         const updated = pd.stock.map((item: { size: string }) =>
           item.size === prod.size ? { ...item, stockAmount: (map[prod.size] || 0) + prod.quantity } : item
         );
-        await updateProduct({ productId: prod.productId, stock: updated });
+        await updateProduct({
+          productId: prod.productId,
+          name: pd.name,
+          description: pd.description,
+          category: pd.category,
+          imageUrl: pd.imageUrl,
+          price: pd.price,
+          stock: updated,
+        });
       }));
       await refreshOrders();
     } catch { setError('Failed to cancel order.'); }
@@ -107,7 +115,15 @@ const ListOrdersPage = () => {
           const updated = pd.stock.map((item: { size: string }) =>
             item.size === prod.size ? { ...item, stockAmount: (map[prod.size] || 0) + prod.quantity } : item
           );
-          await updateProduct({ productId: prod.productId, stock: updated });
+          await updateProduct({
+            productId: prod.productId,
+            name: pd.name,
+            description: pd.description,
+            category: pd.category,
+            imageUrl: pd.imageUrl,
+            price: pd.price,
+            stock: updated,
+          });
         }));
       }
       await refreshOrders();
