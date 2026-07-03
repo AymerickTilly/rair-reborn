@@ -1,23 +1,12 @@
-// src/pages/Shop.tsx
 import { useEffect, useState } from "react";
 import { loadProducts } from "../api/loadProducts";
-import {
-  Col,
-  Container,
-  Row,
-  Card,
-  Button,
-  Modal,
-  Image,
-  Form,
-} from "react-bootstrap";
+import { Modal } from "react-bootstrap";
 import { Product } from "../types/Product";
 import { addToCart } from "../api/addCart";
 import { v4 as uuidv4 } from "uuid";
 import { useAuthStore } from "../auth/AuthStore";
-import "../components/Shopstyling.css";
-import backgroundImage from "../assets/background-texture.png";
 import { loadProductById } from "../api/loadProduct";
+import "../components/Shopstyling.css";
 
 const Shop = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -26,268 +15,223 @@ const Shop = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedQuantity, setSelectedQuantity] = useState(1);
-  const userId = useAuthStore((state) => state.userId); // ✅ Using Option 1
+  const [adding, setAdding] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const userId = useAuthStore((state) => state.userId);
 
   useEffect(() => {
-    loadProducts()
-      .then(setProducts)
-      .catch(console.error);
+    loadProducts().then(setProducts).catch(console.error);
   }, []);
 
   const handleCardClick = (product: Product) => {
     setSelectedProduct(product);
     setSelectedSize("");
     setSelectedQuantity(1);
+    setFeedback(null);
     setShowModal(true);
   };
 
   const handleAddToCart = async () => {
-    if (!selectedProduct || !selectedSize) {
-      alert("Please select a product and size.");
-      return;
-    }
-
+    if (!selectedProduct || !selectedSize) return;
+    setAdding(true);
+    setFeedback(null);
     try {
       const latestProduct = await loadProductById(selectedProduct.productId);
       const selectedStock = latestProduct.stock.find(
-        (item: { size: string; }) => item.size === selectedSize
+        (item: { size: string }) => item.size === selectedSize
       );
-
       if (!selectedStock) {
-        alert(`Size ${selectedSize} is no longer available.`);
+        setFeedback(`Size ${selectedSize} is no longer available.`);
         return;
       }
-
       if (selectedQuantity > selectedStock.stockAmount) {
-        if (selectedStock.stockAmount === 0) {
-          alert(`The stock for size ${selectedSize} is empty, please wait until next supply`);
-        } else {
-          alert(`Only ${selectedStock.stockAmount} in stock for size ${selectedSize}. Please adjust quantity.`);
-        }
+        setFeedback(
+          selectedStock.stockAmount === 0
+            ? `Size ${selectedSize} is out of stock.`
+            : `Only ${selectedStock.stockAmount} left in size ${selectedSize}.`
+        );
         return;
       }
-
-      const cartId = uuidv4();
-
-      const cartItem = {
+      await addToCart({
         userId,
-        cartId,
+        cartId: uuidv4(),
         productId: selectedProduct.productId,
         name: selectedProduct.name,
         price: selectedProduct.price,
         size: selectedSize,
         quantity: selectedQuantity,
         imageUrl: selectedProduct.imageUrl,
-      };
-
-      const response = await addToCart(cartItem);
-      console.log("Cart item added:", response);
-      alert("Item added to cart!");
-      setShowModal(false);
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      alert("Failed to add item to cart.");
+      });
+      setFeedback("Added to cart.");
+      setTimeout(() => setShowModal(false), 900);
+    } catch {
+      setFeedback("Failed to add to cart. Please try again.");
+    } finally {
+      setAdding(false);
     }
   };
 
+  const filtered = products.filter((p) =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div
-      className="shop-container"
-      style={{
-        minHeight: "100vh",
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-        backgroundColor: "none",
-        backgroundBlendMode: "overlay",
-      }}
-    >
-      <Container className="py-4">
-        <Row className="g-4 d-flex align-items-stretch">
-          <Form className="mb-4">
-            <Form.Control
-              type="text"
-              placeholder="Search for clothes..."
+    <div className="shop" id="main-content">
+      <div className="shop__inner">
+        <header className="shop__header">
+          <h1 className="shop__title">Shop</h1>
+          <div className="shop__search-wrap">
+            <input
+              className="shop__search"
+              type="search"
+              placeholder="Search products…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search products"
             />
-          </Form>
+          </div>
+        </header>
 
-          {products
-            .filter((product) =>
-              product.name.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-            .map((product) => (
-              <Col
-                key={product.productId}
-                xs={12}
-                sm={6}
-                md={4}
-                className="d-flex h-100"
-              >
-                <Card
-                  className="shop-card shadow-sm h-100 w-100 d-flex flex-column"
-                  onClick={() => handleCardClick(product)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <Card.Body className="d-flex flex-column justify-content-between flex-grow-1">
-                    <div>
-                      <Card.Title
-                        className="fw-bold fs-5 text-center"
-                        style={{ minHeight: "3rem" }}
-                      >
-                        {product.name}
-                      </Card.Title>
+        <div className="shop__grid" role="list">
+          {filtered.length === 0 && (
+            <p className="shop__empty">No products found</p>
+          )}
+          {filtered.map((product) => (
+            <button
+              key={product.productId}
+              type="button"
+              className="product-card"
+              onClick={() => handleCardClick(product)}
+              role="listitem"
+              aria-label={`View ${product.name} – $${product.price}`}
+            >
+              <div className="product-card__img-wrap">
+                <img
+                  className="product-card__img"
+                  src={product.imageUrl}
+                  alt={product.name}
+                  loading="lazy"
+                  width={300}
+                  height={400}
+                />
+                <div className="product-card__quick" aria-hidden="true">
+                  <span className="product-card__quick-label">Quick view</span>
+                </div>
+              </div>
 
-                      <Card.Text
-                        style={{
-                          maxHeight: "60px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          marginBottom: "0.5rem",
-                        }}
-                      >
-                        {product.description}
-                      </Card.Text>
+              <div className="product-card__body">
+                <p className="product-card__name">{product.name}</p>
+                <p className="product-card__desc">{product.description}</p>
+                <div className="product-card__footer">
+                  <span className="product-card__price">${product.price}</span>
+                  {product.onSale && (
+                    <span className="product-card__sale">
+                      Sale ${product.salePrice}
+                    </span>
+                  )}
+                </div>
+                <div className="product-card__stock" aria-label="Stock">
+                  {product.stock.map((item, i) => (
+                    <span key={i} className="stock-tag">
+                      {item.size} · {item.stockAmount}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
 
-                      <div className="text-center mb-2">
-                        <Card.Img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          style={{
-                            maxWidth: "150px",
-                            maxHeight: "150px",
-                            objectFit: "contain",
-                          }}
-                        />
-                      </div>
-
-                      <Card.Text className="fw-bold">
-                        Price: ${product.price}
-                      </Card.Text>
-                      {product.onSale && (
-                        <Card.Text className="text-danger">
-                          Sale Price: ${product.salePrice}
-                        </Card.Text>
-                      )}
-                    </div>
-
-                    <div>
-                      <strong>Stock:</strong>
-                      <div
-                        className="mt-1 mb-2"
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(3, 1fr)",
-                          gap: "0.25rem",
-                        }}
-                      >
-                        {product.stock.map((item, index) => (
-                          <span
-                            key={index}
-                            className="shop-stock-tag border rounded px-2 py-1 text-muted small text-truncate"
-                          >
-                            {item.size} – {item.stockAmount}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-        </Row>
-      </Container>
-
-      {/* Product Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+      {/* Product modal */}
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        centered
+        dialogClassName="shop-modal rair-modal"
+      >
         {selectedProduct && (
           <>
             <Modal.Header closeButton>
-              <Modal.Title>{selectedProduct.name}</Modal.Title>
+              <p className="shop-modal__name">{selectedProduct.name}</p>
             </Modal.Header>
             <Modal.Body>
-              <div className="text-center mb-3">
-                <Image
-                  src={selectedProduct.imageUrl}
-                  alt={selectedProduct.name}
-                  style={{ maxHeight: "200px", objectFit: "contain" }}
-                  fluid
-                />
-              </div>
-              <p>{selectedProduct.description}</p>
-              <p>
-                <strong>Price:</strong> ${selectedProduct.price}
-              </p>
+              <img
+                className="shop-modal__img"
+                src={selectedProduct.imageUrl}
+                alt={selectedProduct.name}
+              />
+              <p className="shop-modal__price">${selectedProduct.price}</p>
               {selectedProduct.onSale && (
-                <p className="text-danger">
-                  <strong>Sale Price:</strong> ${selectedProduct.salePrice}
-                </p>
+                <p className="shop-modal__sale">Sale ${selectedProduct.salePrice}</p>
               )}
-              <Form.Group controlId="sizeSelect" className="mb-3">
-                <Form.Label>
-                  <strong>Select Size</strong>
-                </Form.Label>
-                <Form.Select
+              <p className="shop-modal__desc">{selectedProduct.description}</p>
+
+              <div className="rair-field">
+                <label className="rair-label" htmlFor="size-select">Size</label>
+                <select
+                  id="size-select"
+                  className="rair-select"
                   value={selectedSize}
                   onChange={(e) => setSelectedSize(e.target.value)}
                 >
                   <option value="">Select a size</option>
                   {selectedProduct.stock.map((item, idx) => (
                     <option key={idx} value={item.size}>
-                      {item.size} – {item.stockAmount} in stock
+                      {item.size} — {item.stockAmount} in stock
                     </option>
                   ))}
-                </Form.Select>
-              </Form.Group>
+                </select>
+              </div>
 
-              <Form.Group controlId="quantityInput">
-                <Form.Label>
-                  <strong>Quantity</strong>
-                </Form.Label>
-                <Form.Control
+              <div className="rair-field">
+                <label className="rair-label" htmlFor="qty-input">Quantity</label>
+                <input
+                  id="qty-input"
                   type="number"
+                  className="rair-input"
                   min={1}
                   max={
-                    selectedProduct.stock.find(
-                      (item) => item.size === selectedSize
-                    )?.stockAmount || 10
+                    selectedProduct.stock.find((i) => i.size === selectedSize)
+                      ?.stockAmount || 10
                   }
                   value={selectedQuantity}
                   onChange={(e) => {
-                    const inputQuantity = Number(e.target.value);
-                    const maxStock =
-                      selectedProduct.stock.find(
-                        (item) => item.size === selectedSize
-                      )?.stockAmount || 10;
-
-                    if (inputQuantity > maxStock) {
-                      setSelectedQuantity(maxStock);
-                    } else if (inputQuantity < 1) {
-                      setSelectedQuantity(1);
-                    } else {
-                      setSelectedQuantity(inputQuantity);
-                    }
+                    const v = Number(e.target.value);
+                    const max =
+                      selectedProduct.stock.find((i) => i.size === selectedSize)
+                        ?.stockAmount || 10;
+                    setSelectedQuantity(Math.min(Math.max(v, 1), max));
                   }}
                 />
-              </Form.Group>
+              </div>
+
+              {feedback && (
+                <p
+                  className="rair-error"
+                  role="alert"
+                  style={{ color: feedback.startsWith("Added") ? "var(--rair-primary)" : undefined }}
+                >
+                  {feedback}
+                </p>
+              )}
             </Modal.Body>
             <Modal.Footer>
-              <Button
-                className="shop-secondary-button"
+              <button
+                type="button"
+                className="btn-rair btn-rair-ghost"
                 onClick={() => setShowModal(false)}
               >
                 Close
-              </Button>
-              <Button
-                className="shop-button"
-                disabled={!selectedSize}
+              </button>
+              <button
+                type="button"
+                className="btn-rair btn-rair-primary"
+                disabled={!selectedSize || adding}
                 onClick={handleAddToCart}
               >
-                Add to Cart
-              </Button>
+                {adding ? "Adding…" : "Add to Cart"}
+              </button>
             </Modal.Footer>
           </>
         )}

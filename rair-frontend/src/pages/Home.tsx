@@ -1,6 +1,4 @@
-// src/pages/Home.tsx
 import { useEffect, useState } from 'react';
-import { Container } from 'react-bootstrap';
 import { useAuthStore } from '../auth/AuthStore';
 import CarouselComponent from '../components/Carousel';
 import { loadProducts } from '../api/loadProducts';
@@ -8,94 +6,83 @@ import Footer from '../components/Footer';
 import { Product } from '../types/Product';
 import { Slide } from '../types/Slide';
 import '../components/Homestyling.css';
-import backgroundImage from '../assets/background-texture.png';
 
 const Home = () => {
-  const { loading, userId } = useAuthStore();
+  const { loading } = useAuthStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const allProducts = await loadProducts();
-        setProducts(allProducts);
-        setProductsLoading(false);
-        console.log(userId);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-        setProductsLoading(false);
-      }
-    };
-    fetchProducts();
-  }, [userId]);
+    loadProducts()
+      .then(setProducts)
+      .catch(console.error)
+      .finally(() => setProductsLoading(false));
+  }, []);
 
-  if (loading || productsLoading) return <p>Loading...</p>;
+  if (loading || productsLoading) {
+    return (
+      <div className="home" id="main-content">
+        <div className="hero">
+          <div className="hero__inner">
+            <span className="hero__eyebrow">New Collection</span>
+            <h1 className="hero__brand">RAIR</h1>
+            <p className="hero__tagline">Loading collection&hellip;</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const categories = Array.from(new Set(products.map((p) => p.category)));
 
   return (
-    <div
-        className="home-page"
-        style={{
-          backgroundImage: `url(${backgroundImage})`,
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          backgroundColor: 'none',
-          backgroundBlendMode: 'overlay',
-          minHeight: '100vh',
-          width: '100%',
-        }}
-      >
-      <Container
-        fluid
-        className="d-flex flex-column align-items-center text-center pb-4"
-        style={{
-          fontFamily: 'Times New Roman, sans-serif',
-          paddingTop: '20px',
-        }}
-      >
-        <h1 className="display-1 mb-4 text-white text-shadow">RAIR Clothing.</h1>
-          <div className="mission-statement-card mt-4">
-          <p>
-            At <strong>RAIR</strong>, quality meets comfort—without compromise.
-            <br />
-            We craft modern, trend-driven outerwear using sustainable materials,
-            ensuring you look sharp and feel comfortable every day.
-            <br /><br />
-            Ready to upgrade your wardrobe with style and purpose?
-            <br />
-            <strong>Place your order today.</strong>
-          </p>
+    <div className="home" id="main-content">
+      {/* Hero */}
+      <section className="hero" aria-labelledby="hero-brand">
+        <div className="hero__inner">
+          <span className="hero__eyebrow">New Collection</span>
+          <h1 className="hero__brand" id="hero-brand">RAIR</h1>
+          <p className="hero__tagline">Quality meets comfort&mdash;without compromise</p>
+          <div className="hero__cta">
+            <a href="#collections" className="btn-rair btn-rair-primary">
+              Shop Now
+            </a>
+          </div>
         </div>
-        <div
-          className="d-flex flex-wrap justify-content-center"
-          style={{
-            maxWidth: '960px',
-            margin: '0 auto',
-            rowGap: '0.01rem',
-            columnGap: '2rem',
-          }}
-        >
+        <div className="hero__scroll" aria-hidden="true">
+          <span className="hero__scroll-label">Scroll</span>
+          <span className="hero__scroll-line" />
+        </div>
+      </section>
+
+      {/* Collections */}
+      <section id="collections" className="collections" aria-label="Collections">
+        <div className="collections__inner">
+          <header className="collections__header">
+            <h2 className="collections__title">Collections</h2>
+          </header>
+
           {categories.map((category) => {
             const categoryProducts = products.filter((p) => p.category === category);
             const slides: Slide[] = categoryProducts.map((p) => ({
               image: p.imageUrl,
-              alt: `${p.name} image`,
+              alt: `${p.name}`,
               title: p.name,
               text: p.description,
               productId: p.productId,
             }));
 
             return (
-              <CarouselComponent key={category} slides={slides} />
+              <div key={category} className="collection-row">
+                <div className="collection-row__header">
+                  <h3 className="collection-row__name">{category}</h3>
+                </div>
+                <CarouselComponent slides={slides} />
+              </div>
             );
           })}
         </div>
-
-      
-      </Container>
+      </section>
 
       <Footer />
     </div>

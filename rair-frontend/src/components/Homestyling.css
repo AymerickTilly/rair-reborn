@@ -1,97 +1,401 @@
-/* General page styling */
+/* ══════════════════════════════
+   HOME PAGE
+   ══════════════════════════════ */
 
-.text-shadow {
-  text-shadow: 2px 2px 6px rgba(243, 243, 243, 0.342);
-}
-
-.home-page {
-  background-color: #333333;
+.home {
+  background: var(--rair-bg);
   min-height: 100vh;
-  overflow-x: hidden;
 }
 
-
-
-/* Carousel card container */
-.carousel-card-wrapper {
-  flex: 0 1 45%;
-  max-width: 700px;
-  height: 500px;
-  padding: 30px;
-  box-sizing: border-box;
+/* ── Hero ── */
+.hero {
+  position: relative;
+  height: 100vh;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  padding: 2rem;
 }
 
-/* Carousel card itself */
-.carousel-card {
-  position: relative; /* Needed for caption positioning */
-  background-color: #0000009e;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  padding: 1.5rem;
-  height: 100%;
+/* Subtle radial glow */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 65% 55% at 50% 50%,
+    oklch(0.75 0.165 195 / 0.07) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Horizontal rule lines decoration */
+.hero::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--rair-border);
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
+}
+
+.hero__eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--rair-primary);
+  margin-bottom: 1.25rem;
+}
+
+.hero__brand {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(5.5rem, 22vw, 15rem);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--rair-ink);
+  line-height: 0.88;
+  text-wrap: balance;
+  margin: 0;
+}
+
+.hero__tagline {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: clamp(0.75rem, 1.5vw, 0.9375rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--rair-muted);
+  margin-top: 1.75rem;
+  max-width: 40ch;
+}
+
+.hero__cta { margin-top: 3rem; }
+
+/* Scroll indicator */
+.hero__scroll {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hero__scroll-label {
+  font-family: var(--font-body);
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rair-muted);
+}
+
+.hero__scroll-line {
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(to bottom, var(--rair-primary), transparent);
+  animation: scrollLine 1.8s ease-in-out infinite;
+  transform-origin: top;
+}
+
+@keyframes scrollLine {
+  0%   { transform: scaleY(0); opacity: 0; }
+  30%  { opacity: 1; }
+  70%  { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__scroll-line { animation: none; opacity: 0.3; }
+}
+
+/* ── Collections section ── */
+.collections {
+  padding: 7rem 0 4rem;
+}
+
+.collections__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+}
+
+.collections__header {
+  margin-bottom: 5rem;
+  border-bottom: 1px solid var(--rair-border);
+  padding-bottom: 2rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.collections__title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--rair-muted);
+  margin: 0;
+}
+
+.collection-row {
+  margin-bottom: 7rem;
+}
+
+.collection-row__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+}
+
+.collection-row__name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--rair-ink);
+  line-height: 0.95;
+  text-wrap: balance;
+  margin: 0;
+}
+
+/* ══════════════════════════════
+   PRODUCT CAROUSEL (Home)
+   ══════════════════════════════ */
+.product-carousel {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr 2.5rem;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 440px;
+}
+
+.carousel-arrow {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: none;
+  border: 1px solid var(--rair-border);
+  color: var(--rair-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  overflow: hidden; /* Ensures captions don’t overflow */
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+.carousel-arrow:hover:not(:disabled) {
+  border-color: var(--rair-primary);
+  color: var(--rair-primary);
+}
+.carousel-arrow:disabled { opacity: 0.25; cursor: not-allowed; }
+.carousel-arrow:focus-visible {
+  outline: 2px solid var(--rair-primary);
+  outline-offset: 2px;
 }
 
-/* Carousel inner layout */
-.carousel-card .carousel,
-.carousel-card .carousel-item {
-  height: 100%;
-}
-
-.carousel-card img {
-  height: 100%;
-  width: 110%;
-  object-fit: cover;
-  padding: 1rem;
-  border-radius: 8px;
-}
-
-
-
-/* Hover effect for card */
-.carousel-card:hover {
-  box-shadow: 0 8px 24px rgba(222, 222, 222, 0.5);
-  transition: box-shadow 0.3s ease;
-}
-
-/* Mission statement styling */
-.mission-statement-card {
-  background-color: #00000000;
-  color: #ffffff;
-  max-width: 700px;
-  margin: 0 auto 30px auto;
-  padding: 20px 30px;
-  border-radius: 12px;
-  font-family: Arial, sans-serif;
-  font-size: 1.3rem;
-  text-align: center;
-  text-shadow: 1px 1px 4px rgb(34, 34, 34);
-}
-
-/* Modal image styling */
-.modal-body img {
-  width: 100%;
-  max-height: 300px;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
-.carousel-item {
+.carousel-slide {
   position: relative;
-  padding-bottom: 40px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--rair-border);
+  transition: border-color 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.carousel-slide:hover { border-color: var(--rair-primary); }
+.carousel-slide:focus-visible {
+  outline: 2px solid var(--rair-primary);
+  outline-offset: 3px;
 }
 
-.carousel-card img {
-  height: 100%;
+.carousel-slide__img {
+  display: block;
   width: 100%;
+  height: 400px;
   object-fit: cover;
-  border-radius: 8px;
+  transition: transform 0.6s var(--ease-out, cubic-bezier(0.16,1,0.3,1));
+}
+.carousel-slide:hover .carousel-slide__img { transform: scale(1.04); }
+
+/* Hover overlay */
+.carousel-slide__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: oklch(0.07 0 0 / 0.55);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.carousel-slide:hover .carousel-slide__overlay { opacity: 1; }
+
+.carousel-slide__view {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rair-ink);
+  border: 1px solid var(--rair-ink);
+  padding: 0.5rem 1.25rem;
 }
 
+/* Caption bar */
+.carousel-slide__caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(to top, oklch(0.07 0 0 / 0.92), transparent);
+}
 
-.carousel-caption {
-  min-height: 40px; /* Optional, but helpful */
+.carousel-slide__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rair-ink);
+  text-align: left;
+  line-height: 1.1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.carousel-slide__counter {
+  font-family: var(--font-body);
+  font-size: 0.625rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--rair-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: 0.75rem;
+}
+
+/* ── Modal carousel image ── */
+.rair-modal .modal-img {
+  width: 100%;
+  height: 280px;
+  object-fit: contain;
+  display: block;
+}
+
+.rair-modal .modal-desc {
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 300;
+  color: var(--rair-muted);
+  line-height: 1.7;
+}
+
+/* ── Footer ── */
+.rair-footer {
+  border-top: 1px solid var(--rair-border);
+  padding: 2.5rem 0;
+  background: var(--rair-bg);
+}
+
+.rair-footer__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.rair-footer__brand {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.25rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--rair-ink);
+}
+
+.rair-footer__links {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rair-footer__link {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--rair-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.rair-footer__link:hover { color: var(--rair-primary); }
+.rair-footer__link:focus-visible {
+  outline: 2px solid var(--rair-primary);
+  outline-offset: 2px;
+}
+
+.rair-footer__sep {
+  color: var(--rair-border);
+  font-size: 0.75rem;
+}
+
+.rair-footer__copy {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: var(--rair-muted);
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .rair-footer__inner { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+  .product-carousel { max-width: 100%; }
+  .collections__inner { padding: 0 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel-slide__img,
+  .carousel-slide__overlay { transition: none !important; }
 }

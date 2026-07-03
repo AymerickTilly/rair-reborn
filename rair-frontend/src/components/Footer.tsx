@@ -1,22 +1,21 @@
 const Footer = () => {
-    return(
-        <>
-        {/* 🔻 Footer */}
-            <footer
-                className="text-white text-center py-4"
-                style={{
-                backgroundColor: '#0000009e',
-                width: '100vw',
-                }}
-            >
-                <div className="container">
-                    <p className="mb-1">© 2025 RAIR Clothing</p>
-                    <p className="mb-0">Privacy · Terms · Contact</p>
-                </div>
-            </footer>
-        </>
-    )
-    
-}
+  return (
+    <footer className="rair-footer" aria-label="Site footer">
+      <div className="rair-footer__inner">
+        <span className="rair-footer__brand">RAIR</span>
+        <nav aria-label="Footer navigation">
+          <ul className="rair-footer__links" role="list">
+            <li><a href="#" className="rair-footer__link">Privacy</a></li>
+            <li aria-hidden="true" className="rair-footer__sep">·</li>
+            <li><a href="#" className="rair-footer__link">Terms</a></li>
+            <li aria-hidden="true" className="rair-footer__sep">·</li>
+            <li><a href="mailto:contact@rairclothing.com" className="rair-footer__link">Contact</a></li>
+          </ul>
+        </nav>
+        <p className="rair-footer__copy">© 2025 RAIR Clothing. All rights reserved.</p>
+      </div>
+    </footer>
+  );
+};
 
 export default Footer;

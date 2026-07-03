@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Modal, Container, Form, Row, Col, Image, Button } from 'react-bootstrap';
+import { Modal } from 'react-bootstrap';
 import { useAuthStore } from '../auth/AuthStore';
 import { loadUserById } from '../api/loadUser';
 import { User } from '../types/User';
@@ -10,7 +10,6 @@ import { addOrder } from '../api/addOrder';
 import { deleteCart } from '../api/deleteCart';
 import { updateProduct } from '../api/updateProduct';
 import { loadProductById } from '../api/loadProduct';
-import backgroundImage from '../assets/background-texture.png';
 
 interface CheckoutLocationState {
   selectedItems: ProductItem[];
@@ -23,8 +22,7 @@ const Checkout = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedBank, setSelectedBank] = useState('');
   const [products, setProducts] = useState<ProductItem[]>([]);
-
-  // Pull userId and email, avoid using user.username
+  const [placing, setPlacing] = useState(false);
   const { userId, email } = useAuthStore();
 
   useEffect(() => {
@@ -32,58 +30,42 @@ const Checkout = () => {
       navigate('/cart');
       return;
     }
-
     const sanitized = state.selectedItems.filter(
       (item): item is ProductItem =>
         typeof item.unitPrice === 'number' &&
         typeof item.quantity === 'number' &&
         typeof item.name === 'string'
     );
-
     setProducts(sanitized);
   }, [state, navigate]);
 
   useEffect(() => {
-    async function fetchUser() {
-      if (userId) {
-        try {
-          const loadedUser = (await loadUserById(userId)) as User | null; // Use userId here
-          if (loadedUser?.address) {
-            setAddress(loadedUser.address);
-          }
-        } catch (err) {
-          console.error('Failed to load user data:', err);
-        }
-      }
-    }
-    fetchUser();
+    if (!userId) return;
+    loadUserById(userId)
+      .then((u: User | null) => { if (u?.address) setAddress(u.address); })
+      .catch(console.error);
   }, [userId]);
 
-  const getItemTotal = (product: ProductItem) => {
-    if (typeof product.unitPrice !== 'number' || typeof product.quantity !== 'number') return '0.00';
-    return (product.unitPrice * product.quantity).toFixed(2);
-  };
+  const itemTotal = (p: ProductItem) => (p.unitPrice * p.quantity).toFixed(2);
+  const grandTotal = () =>
+    products.reduce((s, p) => s + p.unitPrice * p.quantity, 0).toFixed(2);
 
-  const getGrandTotal = () => {
-    return products
-      .reduce((sum, product) => {
-        if (typeof product.unitPrice !== 'number' || typeof product.quantity !== 'number') return sum;
-        return sum + product.unitPrice * product.quantity;
-      }, 0)
-      .toFixed(2);
-  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function stockArrayToMap(stockArray: any[]) {
+    return stockArray.reduce((acc, item) => {
+      acc[item.size] = item.stockAmount;
+      return acc;
+    }, {} as Record<string, number>);
+  }
 
   const confirmPayment = async () => {
+    if (!userId) return;
+    setPlacing(true);
     try {
-      if (!userId) {
-        alert('User not logged in or missing user ID.');
-        return;
-      }
-
       const orderData = {
         orderId: uuidv4(),
-        userId,          // Use userId here
-        username: email,  // Email can be username or display name
+        userId,
+        username: email,
         date: new Date().toISOString(),
         status: "PENDING",
         products: products.map(p => ({
@@ -96,64 +78,30 @@ const Checkout = () => {
           unitPrice: p.unitPrice,
           totalPrice: p.unitPrice * p.quantity,
         })),
-        totalAmount: parseFloat(getGrandTotal()),
+        totalAmount: parseFloat(grandTotal()),
         shippingAddress: address,
         paymentMethod: selectedBank,
       };
 
-      // Helper function to convert stock array to map
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      function stockArrayToMap(stockArray: any[]) {
-        return stockArray.reduce((acc, item) => {
-          acc[item.size] = item.stockAmount;
-          return acc;
-        }, {} as Record<string, number>);
-      }
-
       const response = await addOrder(orderData);
       if (response) {
-        const operationResults = await Promise.all(
+        await Promise.all(
           orderData.products.map(async product => {
             try {
-              // Delete cart item
-              const deleteSuccess = await deleteCart({
-                userId: orderData.userId,
-                cartId: product.cartId,
-                productId: '',
-                name: '',
-                price: 0,
-                size: '',
-                quantity: 0,
-                imageUrl: ''
+              await deleteCart({
+                userId: orderData.userId, cartId: product.cartId,
+                productId: '', name: '', price: 0, size: '', quantity: 0, imageUrl: '',
               });
-
-              // Load product stock
               const productData = await loadProductById(product.productId);
-              if (!productData || !productData.stock) {
-                console.warn(`Invalid product or stock data for product ID ${product.productId}`);
-                return false;
-              }
-
+              if (!productData?.stock) return false;
               const stockMap = stockArrayToMap(productData.stock);
-
-              if (typeof stockMap[product.size] !== 'number') {
-                console.warn(`Invalid stock data for product ID ${product.productId}, size ${product.size}`, productData.stock);
-                return false;
-              }
-
-              const current_stock = stockMap[product.size];
-              const new_stock = current_stock - product.quantity;
-
-              if (new_stock < 0) {
-                console.warn(`Stock would go negative for product ${product.productId} (${product.size})`);
-                return false;
-              }
-
-              const updatedStockArray = productData.stock.map((item: { size: string; }) =>
-                item.size === product.size ? { ...item, stockAmount: new_stock } : item
+              if (typeof stockMap[product.size] !== 'number') return false;
+              const newStock = stockMap[product.size] - product.quantity;
+              if (newStock < 0) return false;
+              const updatedStockArray = productData.stock.map((item: { size: string }) =>
+                item.size === product.size ? { ...item, stockAmount: newStock } : item
               );
-
-              const updateSuccess = await updateProduct({
+              return await updateProduct({
                 productId: product.productId,
                 name: productData.name,
                 description: productData.description,
@@ -162,129 +110,128 @@ const Checkout = () => {
                 price: productData.price,
                 stock: updatedStockArray,
               });
-
-              return deleteSuccess && updateSuccess;
-            } catch (err) {
-              console.error(`Error processing product ${product.productId}:`, err);
-              return false;
-            }
+            } catch { return false; }
           })
         );
-
-        const failedOps = operationResults.filter(success => !success);
-        if (failedOps.length > 0) {
-          console.warn(`${failedOps.length} product(s) failed to process (delete/update).`);
-        }
-
-        alert(`Order placed successfully!\nOrder ID: ${response.orderId}`);
-        navigate('/listOrdersPage', {
-          state: { orderId: response.orderId }
-        });
-      } else {
-        alert('Failed to place order.');
+        navigate('/listOrdersPage', { state: { orderId: response.orderId } });
       }
     } catch (err) {
       console.error('Order error:', err);
-      alert('Something went wrong. Try again.');
     } finally {
+      setPlacing(false);
       setShowConfirmModal(false);
     }
   };
 
-  const handlePayment = () => {
-    setShowConfirmModal(true);
-  };
-
   return (
-    <Container
-      style={{
-        maxWidth: 800,
-        fontFamily: 'Arial, serif',
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        backgroundColor: '#333333',
-        backgroundBlendMode: 'overlay',
-        padding: 20,
-        borderRadius: 10,
-      }}
-    >
-      <div className="mb-3">
-        <Button variant="primary" onClick={() => navigate('/cart')}>
-          ← Back to Cart
-        </Button>
-      </div>
-      <h2 className="mb-4 text-center">Checkout</h2>
-      <Form.Group className="mb-4" controlId="checkoutAddress">
-        <h4 className="mb-3">Shipping Address</h4>
-        <div className="form-control" style={{ minHeight: '3rem' }}>
-          {address || 'No address provided'}
-        </div>
-      </Form.Group>
+    <main className="page-shell" id="main-content">
+      <div className="page-shell__inner page-shell__inner--narrow">
+        <header className="page-shell__header">
+          <button
+            type="button"
+            className="btn-rair btn-rair-ghost"
+            onClick={() => navigate('/cart')}
+          >
+            ← Cart
+          </button>
+          <h1 className="page-shell__title">Checkout</h1>
+        </header>
 
-      <h4 className="mb-3">Your Items</h4>
-      {products.map((product) => (
-        <Row className="align-items-center mb-4 border p-2 rounded" key={product.id}>
-          <Col xs={3}>
-            <Image src={product.image} alt={product.name} fluid rounded />
-          </Col>
-          <Col xs={9}>
-            <div><strong>{product.name}</strong></div>
-            <div>Size: {product.size?.[0] ?? 'N/A'}</div>
-            <div>
-              Unit Price: ${typeof product.unitPrice === 'number' ? product.unitPrice.toFixed(2) : 'N/A'}
-            </div>
-            <div>Quantity: {product.quantity}</div>
-            <div>
-              <strong>
-                Total: ${typeof product.unitPrice === 'number' ? getItemTotal(product) : 'N/A'}
-              </strong>
-            </div>
-          </Col>
-        </Row>
-      ))}
+        {/* Shipping */}
+        <section className="checkout-section">
+          <h2 className="checkout-section__heading">Shipping address</h2>
+          <p className="checkout-section__value">{address || 'No address on file'}</p>
+        </section>
 
-      <h5 className="mt-3">
-        Grand Total: <span className="text-success">${getGrandTotal()}</span>
-      </h5>
+        {/* Items */}
+        <section className="checkout-section">
+          <h2 className="checkout-section__heading">Order summary</h2>
+          <div className="checkout-items">
+            {products.map(p => (
+              <div key={p.id} className="checkout-item">
+                <img
+                  src={p.image}
+                  alt={p.name}
+                  className="checkout-item__img"
+                  loading="lazy"
+                />
+                <div className="checkout-item__info">
+                  <p className="checkout-item__name">{p.name}</p>
+                  <p className="checkout-item__meta">Size: {p.size?.[0] ?? '—'}</p>
+                  <p className="checkout-item__meta">Qty: {p.quantity}</p>
+                </div>
+                <p className="checkout-item__total">${itemTotal(p)}</p>
+              </div>
+            ))}
+          </div>
+          <div className="checkout-grand">
+            <span>Total</span>
+            <span className="checkout-grand__amount">${grandTotal()}</span>
+          </div>
+        </section>
 
-      <Form.Group className="mt-4 mb-3">
-        <Form.Label>Select Bank</Form.Label>
-        <Form.Select value={selectedBank} onChange={(e) => setSelectedBank(e.target.value)}>
-          <option value="">-- Select a Bank --</option>
-          <option value="Bank A">Bank A</option>
-          <option value="Bank B">Bank B</option>
-          <option value="Bank C">Bank C</option>
-        </Form.Select>
-      </Form.Group>
+        {/* Payment */}
+        <section className="checkout-section">
+          <h2 className="checkout-section__heading">Payment method</h2>
+          <div className="rair-field">
+            <label className="rair-label" htmlFor="bank-select">Select bank</label>
+            <select
+              id="bank-select"
+              className="rair-select"
+              value={selectedBank}
+              onChange={e => setSelectedBank(e.target.value)}
+            >
+              <option value="">— Select a bank —</option>
+              <option value="Bank A">Bank A</option>
+              <option value="Bank B">Bank B</option>
+              <option value="Bank C">Bank C</option>
+            </select>
+          </div>
+        </section>
 
-      <div className="d-grid gap-2 mt-4 mb-5">
-        <Button
-          variant="success"
-          size="lg"
-          onClick={handlePayment}
-          disabled={!address || !selectedBank}
+        <button
+          type="button"
+          className="btn-rair btn-rair-primary"
+          disabled={!address || !selectedBank || placing}
+          onClick={() => setShowConfirmModal(true)}
+          style={{ width: '100%', marginTop: '2rem' }}
         >
-          Proceed to Payment
-        </Button>
+          {placing ? 'Placing order…' : 'Place order'}
+        </button>
       </div>
 
-      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
+      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered dialogClassName="rair-modal">
         <Modal.Header closeButton>
-          <Modal.Title>Confirm Payment</Modal.Title>
+          <Modal.Title>Confirm order</Modal.Title>
         </Modal.Header>
-        <Modal.Body>Are you sure you want to proceed with the payment?</Modal.Body>
+        <Modal.Body>
+          <p style={{ fontWeight: 300, color: 'var(--rair-muted)' }}>
+            Total: <strong style={{ color: 'var(--rair-ink)' }}>${grandTotal()}</strong>
+            {' '}via {selectedBank}
+          </p>
+          <p style={{ fontWeight: 300, color: 'var(--rair-muted)', fontSize: '0.875rem' }}>
+            Shipping to: {address}
+          </p>
+        </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+          <button
+            type="button"
+            className="btn-rair btn-rair-ghost"
+            onClick={() => setShowConfirmModal(false)}
+          >
             Cancel
-          </Button>
-          <Button variant="success" onClick={confirmPayment}>
-            Confirm
-          </Button>
+          </button>
+          <button
+            type="button"
+            className="btn-rair btn-rair-primary"
+            onClick={confirmPayment}
+            disabled={placing}
+          >
+            {placing ? 'Placing…' : 'Confirm'}
+          </button>
         </Modal.Footer>
       </Modal>
-    </Container>
+    </main>
   );
 };
 

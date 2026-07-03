@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Form, Button, Card, Container, Row, Col } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { profileUpdateSchema, TprofileUpdateFormData } from "../schemas/TprofileUpdateSchema";
@@ -7,147 +6,123 @@ import { useAuthStore } from "../auth/AuthStore";
 import { loadUserById } from "../api/loadUser";
 import { updateUser } from "../api/updateUser";
 import { User } from "../types/User";
-import backgroundImage from '../assets/background-texture.png';
-
-type ProfileData = {
-  username: string;
-  address: string;
-};
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [address, setAddress] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
   const [editMode, setEditMode] = useState(false);
-
+  const [saved, setSaved] = useState(false);
   const { userId, email } = useAuthStore();
 
   const {
     register,
     handleSubmit,
     setValue,
-    formState: { errors, isDirty },
+    formState: { errors, isDirty, isSubmitting },
   } = useForm<TprofileUpdateFormData>({
     resolver: zodResolver(profileUpdateSchema),
   });
 
   useEffect(() => {
-    async function fetchProfile() {
-      const id = userId ?? email;
-      if (!id) return;
-
-      try {
-        const data = await loadUserById(id);
-        if (data) {
-          setProfile(data);
-          setValue("address", data.address);
-        }
-      } catch (err) {
-        console.error("Failed to load user profile:", err);
+    const id = userId ?? email;
+    if (!id) return;
+    loadUserById(id).then(data => {
+      if (data) {
+        setUsername(data.username);
+        setAddress(data.address);
+        setValue("address", data.address);
       }
-    }
-    fetchProfile();
+    }).catch(console.error);
   }, [setValue, userId, email]);
 
   const onSubmit = async (formData: TprofileUpdateFormData) => {
-    try {
-      const id = userId ?? email;
-      if (!id) {
-        console.error("User ID is missing, cannot update profile.");
-        return;
-      }
-
-      if (!profile) {
-        throw new Error("Profile not loaded yet.");
-      }
-
-      const userData: User = {
-        userId: id,
-        username: profile.username,
-        address: formData.address,
-      };
-
-      const response = await updateUser(userData);
-
-      if (response) {
-        console.log("User update successful:", response);
-        setProfile((prev) => prev ? { ...prev, address: formData.address } : prev);
-        setEditMode(false);
-      } else {
-        console.error("Failed to update user.");
-      }
-    } catch (error) {
-      console.error("Error in profile update:", error);
+    const id = userId ?? email;
+    if (!id) return;
+    const userData: User = { userId: id, username, address: formData.address };
+    const ok = await updateUser(userData);
+    if (ok) {
+      setAddress(formData.address);
+      setEditMode(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
     }
   };
 
+  const initial = username[0]?.toUpperCase() || 'U';
+
   return (
-    <div
-      className="profile-page"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        backgroundColor: '#333333',
-        backgroundBlendMode: 'overlay',
-        minHeight: '100vh',
-        width: '100%',
-        paddingTop: '60px',
-      }}
-    >
-      <Container className="mt-5">
-        <Card className="p-4 shadow-sm rounded-4">
-          <Row className="align-items-center">
-            <Col md={2} className="text-center mb-3 mb-md-0">
-              <div
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  borderRadius: "50%",
-                  backgroundColor: "#e9ecef",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "28px",
-                  fontWeight: "bold",
-                }}
-              >
-                {profile?.username?.[0]?.toUpperCase() || "U"}
+    <main className="page-shell" id="main-content">
+      <div className="page-shell__inner page-shell__inner--narrow">
+        <header className="page-shell__header">
+          <h1 className="page-shell__title">Profile</h1>
+        </header>
+
+        <div className="profile-card">
+          <div className="profile-card__avatar" aria-hidden="true">{initial}</div>
+          <div className="profile-card__body">
+            <p className="profile-card__email">{username || '—'}</p>
+
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+              <div className="rair-field">
+                <label className="rair-label" htmlFor="profile-address">
+                  Delivery address
+                </label>
+                <input
+                  id="profile-address"
+                  type="text"
+                  className="rair-input"
+                  {...register("address")}
+                  disabled={!editMode}
+                  defaultValue={address}
+                  autoComplete="street-address"
+                />
+                {errors.address && (
+                  <p className="rair-error">{errors.address.message}</p>
+                )}
               </div>
-            </Col>
-            <Col md={10}>
-              <h4 className="mb-1">Profile</h4>
-              <p className="mb-4 text-muted">{profile?.username ?? 'Loading...'}</p>
-              <Form onSubmit={handleSubmit(onSubmit)}>
-                <Form.Group controlId="formAddress">
-                  <Form.Label><strong>Delivery Address</strong></Form.Label>
-                  <Form.Control
-                    type="text"
-                    {...register("address")}
-                    disabled={!editMode}
-                    className="rounded-3"
-                  />
-                  {errors.address && (
-                    <Form.Text className="text-danger">
-                      {errors.address.message}
-                    </Form.Text>
-                  )}
-                </Form.Group>
-                <div className="mt-3">
-                  {editMode ? (
-                    <Button variant="primary" type="submit" disabled={!isDirty}>
-                      Save Changes
-                    </Button>
-                  ) : (
-                    <Button variant="outline-secondary" onClick={() => setEditMode(true)}>
-                      Edit Address
-                    </Button>
-                  )}
-                </div>
-              </Form>
-            </Col>
-          </Row>
-        </Card>
-      </Container>
-    </div>
+
+              {saved && (
+                <p
+                  className="rair-error"
+                  role="status"
+                  style={{ color: 'var(--rair-primary)' }}
+                >
+                  Address updated.
+                </p>
+              )}
+
+              <div className="profile-card__actions">
+                {editMode ? (
+                  <>
+                    <button
+                      type="submit"
+                      className="btn-rair btn-rair-primary"
+                      disabled={!isDirty || isSubmitting}
+                    >
+                      {isSubmitting ? 'Saving…' : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-rair btn-rair-ghost"
+                      onClick={() => setEditMode(false)}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn-rair btn-rair-outline"
+                    onClick={() => setEditMode(true)}
+                  >
+                    Edit address
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }

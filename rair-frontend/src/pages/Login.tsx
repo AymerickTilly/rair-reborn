@@ -2,19 +2,18 @@ import { TsignInSchema, signInSchema } from "../schemas/TsignInSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { signIn } from "../auth/SignIn";
-import { Container, Form, Button, Row, Col } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../auth/AuthStore";
-import backgroundImage from '../assets/background-texture.png';
 
-const FormWithReactHookFormAndZod = () => {
+const Login = () => {
   const navigate = useNavigate();
-  const { setPasswordReset, setUserId } = useAuthStore(); // ✅ added setUserId here
+  const { setPasswordReset, setUserId } = useAuthStore();
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setError,
     reset,
   } = useForm<TsignInSchema>({
     resolver: zodResolver(signInSchema),
@@ -23,88 +22,77 @@ const FormWithReactHookFormAndZod = () => {
   const onSubmit = async (data: TsignInSchema) => {
     try {
       const { sub } = await signIn({ username: data.email, password: data.password });
-      setUserId(sub); // ✅ correctly updates the store
-      console.log("userId set to:", sub); // ✅ logs the new userId
+      setUserId(sub);
       navigate('/');
-    } catch (err: unknown) {
-      console.log(err);
+    } catch {
+      setError("root", { message: "Invalid email or password." });
     }
     reset();
   };
 
   return (
-    <div
-      className="login-page"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        backgroundColor: '#333333',
-        backgroundBlendMode: 'overlay',
-        minHeight: '100vh',
-        width: '100%',
-      }}
-    >
-      <Container className="d-flex align-items-center justify-content-center min-vh-100">
-        <Row className="w-100 justify-content-center">
-          <Col xs={12} sm={10} md={6} lg={4}>
-            <h3 className="text-center mb-4">Login</h3>
-            <Form onSubmit={handleSubmit(onSubmit)}>
-              <Form.Group className="mb-3" controlId="formEmail">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  placeholder="Enter email"
-                  {...register("email")}
-                  isInvalid={!!errors.email}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.email?.message}
-                </Form.Control.Feedback>
-              </Form.Group>
+    <main className="auth-page" id="main-content">
+      <div className="auth-card">
+        <div className="auth-card__brand">RAIR</div>
+        <h1 className="auth-card__title">Sign in</h1>
 
-              <Form.Group className="mb-3" controlId="formPassword">
-                <Form.Label>Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  placeholder="Enter password"
-                  {...register("password")}
-                  isInvalid={!!errors.password}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.password?.message}
-                </Form.Control.Feedback>
-              </Form.Group>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="rair-field">
+            <label className="rair-label" htmlFor="login-email">Email</label>
+            <input
+              id="login-email"
+              type="email"
+              className="rair-input"
+              autoComplete="email"
+              placeholder="you@example.com"
+              {...register("email")}
+            />
+            {errors.email && <p className="rair-error">{errors.email.message}</p>}
+          </div>
 
-              <Button
-                variant="primary"
-                type="submit"
-                disabled={isSubmitting}
-                className="w-100"
-              >
-                {isSubmitting ? "Logging in..." : "Login"}
-              </Button>
-            </Form>
+          <div className="rair-field">
+            <label className="rair-label" htmlFor="login-password">Password</label>
+            <input
+              id="login-password"
+              type="password"
+              className="rair-input"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              {...register("password")}
+            />
+            {errors.password && <p className="rair-error">{errors.password.message}</p>}
+          </div>
 
-            <div className="text-center mt-3">
-              <small>
-                Forgot Password?{" "}
-                <Link onClick={() => setPasswordReset(true)} to="/askResetCode">Click here</Link>
-              </small>
-            </div>
+          {errors.root && (
+            <p className="rair-error" role="alert">{errors.root.message}</p>
+          )}
 
-            <div className="text-center mt-3">
-              <small>
-                Don't have an account?{" "}
-                <Link to="/register">Register here</Link>
-              </small>
-            </div>
-          </Col>
-        </Row>
-      </Container>
-    </div>
+          <button
+            type="submit"
+            className="btn-rair btn-rair-primary"
+            disabled={isSubmitting}
+            style={{ width: '100%', marginTop: '1.5rem' }}
+          >
+            {isSubmitting ? "Signing in…" : "Sign in"}
+          </button>
+        </form>
+
+        <p className="auth-card__footer">
+          <Link
+            to="/askResetCode"
+            className="auth-link"
+            onClick={() => setPasswordReset(true)}
+          >
+            Forgot password?
+          </Link>
+        </p>
+        <p className="auth-card__footer">
+          No account?{" "}
+          <Link to="/register" className="auth-link">Create one</Link>
+        </p>
+      </div>
+    </main>
   );
 };
 
-export default FormWithReactHookFormAndZod;
+export default Login;
