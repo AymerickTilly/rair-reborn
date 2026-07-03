@@ -2,7 +2,6 @@ import React from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { addItemSchema, TAddItemSchema } from "../schemas/TaddItemSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { addProduct } from "../api/addProduct";
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from "react-router";
@@ -10,12 +9,14 @@ import { getIdToken } from "../auth/AuthStore";
 import { API_BASE_URL } from "../api/config";
 
 const FOLDERS = ["crew-neck", "hoodies", "knitwear", "shirts"];
+const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 
 const AddItemPage = () => {
   const [selectedImageUrl, setSelectedImageUrl] = React.useState<string | null>(null);
   const [folder, setFolder] = React.useState(FOLDERS[0]);
   const [folderImages, setFolderImages] = React.useState<string[]>([]);
   const [loadingImages, setLoadingImages] = React.useState(false);
+  const [feedback, setFeedback] = React.useState<string | null>(null);
   const navigate = useNavigate();
 
   const loadImages = async (f: string) => {
@@ -44,140 +45,176 @@ const AddItemPage = () => {
     reset,
   } = useForm<TAddItemSchema>({
     resolver: zodResolver(addItemSchema),
-    defaultValues: {
-      stock: [{ size: "M", stockAmount: 0 }],
-    },
+    defaultValues: { stock: [{ size: "M", stockAmount: 0 }] },
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: "stock" });
 
-  const backToAdminBoard = () => {
-    reset();
-    setSelectedImageUrl(null);
-    navigate("/admin");
-  };
-
   const onSubmit = async (data: TAddItemSchema) => {
     if (!selectedImageUrl) {
-      alert("Please select an image from Cloudinary.");
+      setFeedback("Please select an image from Cloudinary.");
       return;
     }
-    const productId = uuidv4();
+    setFeedback(null);
     try {
-      await addProduct({ productId, ...data, imageUrl: selectedImageUrl });
-      alert("Product added!");
+      await addProduct({ productId: uuidv4(), ...data, imageUrl: selectedImageUrl });
+      setFeedback("Product added successfully.");
       reset();
       setSelectedImageUrl(null);
-      navigate("/admin");
-    } catch (err) {
-      console.error("Error adding product:", err);
-      alert("Failed to add product.");
+      setTimeout(() => navigate("/admin"), 900);
+    } catch {
+      setFeedback("Failed to add product. Please try again.");
     }
   };
 
   return (
-    <Container className="my-5">
-      <h2>Add New Product</h2>
-      <Form onSubmit={handleSubmit(onSubmit)}>
-        <Form.Group className="mb-3">
-          <Form.Label>Name</Form.Label>
-          <Form.Control type="text" {...register("name")} isInvalid={!!errors.name} />
-          <Form.Control.Feedback type="invalid">{errors.name?.message}</Form.Control.Feedback>
-        </Form.Group>
+    <main className="page-shell" id="main-content">
+      <div className="page-shell__inner page-shell__inner--narrow">
+        <header className="page-shell__header">
+          <button type="button" className="btn-rair btn-rair-ghost" onClick={() => navigate("/admin")}>
+            ← Admin
+          </button>
+          <h1 className="page-shell__title">Add Item</h1>
+        </header>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Category</Form.Label>
-          <Form.Control type="text" {...register("category")} isInvalid={!!errors.category} />
-          <Form.Control.Feedback type="invalid">{errors.category?.message}</Form.Control.Feedback>
-        </Form.Group>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="admin-form">
+          {/* Name */}
+          <div className="rair-field">
+            <label className="rair-label" htmlFor="add-name">Name</label>
+            <input id="add-name" type="text" className="rair-input" {...register("name")} />
+            {errors.name && <p className="rair-error">{errors.name.message}</p>}
+          </div>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Description</Form.Label>
-          <Form.Control as="textarea" rows={3} {...register("description")} isInvalid={!!errors.description} />
-          <Form.Control.Feedback type="invalid">{errors.description?.message}</Form.Control.Feedback>
-        </Form.Group>
+          {/* Category */}
+          <div className="rair-field">
+            <label className="rair-label" htmlFor="add-category">Category</label>
+            <input id="add-category" type="text" className="rair-input" {...register("category")} />
+            {errors.category && <p className="rair-error">{errors.category.message}</p>}
+          </div>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Price ($)</Form.Label>
-          <Form.Control type="number" step="0.01" {...register("price")} isInvalid={!!errors.price} />
-          <Form.Control.Feedback type="invalid">{errors.price?.message}</Form.Control.Feedback>
-        </Form.Group>
+          {/* Description */}
+          <div className="rair-field">
+            <label className="rair-label" htmlFor="add-desc">Description</label>
+            <textarea
+              id="add-desc"
+              className="rair-input"
+              rows={4}
+              style={{ resize: 'vertical' }}
+              {...register("description")}
+            />
+            {errors.description && <p className="rair-error">{errors.description.message}</p>}
+          </div>
 
-        <h5>Stock</h5>
-        {fields.map((field, index) => (
-          <Row key={field.id} className="align-items-end mb-3">
-            <Col md={3}>
-              <Form.Label>Size</Form.Label>
-              <Form.Select {...register(`stock.${index}.size` as const)}>
-                {(["XS", "S", "M", "L", "XL", "XXL"] as const).map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </Form.Select>
-            </Col>
-            <Col md={3}>
-              <Form.Label>Amount</Form.Label>
-              <Form.Control type="number" {...register(`stock.${index}.stockAmount` as const)} />
-            </Col>
-            <Col md={2}>
-              <Button variant="danger" onClick={() => remove(index)}>Remove</Button>
-            </Col>
-          </Row>
-        ))}
-        <Button variant="secondary" className="mb-3" onClick={() => append({ size: "M", stockAmount: 0 })}>
-          Add Stock
-        </Button>
+          {/* Price */}
+          <div className="rair-field">
+            <label className="rair-label" htmlFor="add-price">Price ($)</label>
+            <input id="add-price" type="number" step="0.01" className="rair-input" {...register("price")} />
+            {errors.price && <p className="rair-error">{errors.price.message}</p>}
+          </div>
 
-        {/* Cloudinary image picker */}
-        <Form.Group className="mb-3">
-          <Form.Label>Image Folder</Form.Label>
-          <Form.Select value={folder} onChange={e => { setFolder(e.target.value); setSelectedImageUrl(null); }}>
-            {FOLDERS.map(f => <option key={f} value={f}>{f}</option>)}
-          </Form.Select>
-        </Form.Group>
+          {/* Stock */}
+          <div className="admin-section-divider">
+            <span className="admin-section-label">Stock</span>
+          </div>
 
-        {loadingImages ? (
-          <p>Loading images…</p>
-        ) : (
-          <div className="mb-3">
-            <Form.Label>Select an image</Form.Label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+          {fields.map((field, index) => (
+            <div key={field.id} className="stock-row">
+              <div className="rair-field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="rair-label" htmlFor={`size-${index}`}>Size</label>
+                <select id={`size-${index}`} className="rair-select" {...register(`stock.${index}.size` as const)}>
+                  {SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="rair-field" style={{ marginBottom: 0, flex: 1 }}>
+                <label className="rair-label" htmlFor={`qty-${index}`}>Qty</label>
+                <input id={`qty-${index}`} type="number" className="rair-input" {...register(`stock.${index}.stockAmount` as const)} />
+              </div>
+              <button
+                type="button"
+                className="btn-rair btn-rair-danger stock-row__remove"
+                onClick={() => remove(index)}
+                aria-label="Remove size"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            className="btn-rair btn-rair-ghost"
+            style={{ marginBottom: '2.5rem' }}
+            onClick={() => append({ size: "M", stockAmount: 0 })}
+          >
+            + Add size
+          </button>
+
+          {/* Image picker */}
+          <div className="admin-section-divider">
+            <span className="admin-section-label">Image</span>
+          </div>
+
+          <div className="rair-field">
+            <label className="rair-label" htmlFor="add-folder">Cloudinary folder</label>
+            <select
+              id="add-folder"
+              className="rair-select"
+              value={folder}
+              onChange={e => { setFolder(e.target.value); setSelectedImageUrl(null); }}
+            >
+              {FOLDERS.map(f => <option key={f} value={f}>{f}</option>)}
+            </select>
+          </div>
+
+          {loadingImages ? (
+            <p className="admin-loading">Loading images&hellip;</p>
+          ) : folderImages.length === 0 ? (
+            <p className="admin-empty">No images in this folder.</p>
+          ) : (
+            <div className="image-picker" role="listbox" aria-label="Select image">
               {folderImages.map(url => (
-                <img
+                <button
                   key={url}
-                  src={url}
-                  alt=""
+                  type="button"
+                  role="option"
+                  aria-selected={selectedImageUrl === url}
+                  className={`image-picker__btn${selectedImageUrl === url ? ' image-picker__btn--selected' : ''}`}
                   onClick={() => setSelectedImageUrl(url)}
-                  style={{
-                    width: "120px",
-                    height: "120px",
-                    objectFit: "cover",
-                    cursor: "pointer",
-                    border: selectedImageUrl === url ? "3px solid #0d6efd" : "3px solid transparent",
-                    borderRadius: "6px",
-                  }}
-                />
+                >
+                  <img src={url} alt="" className="image-picker__img" loading="lazy" />
+                </button>
               ))}
             </div>
-            {folderImages.length === 0 && <p className="text-muted">No images found in this folder.</p>}
+          )}
+
+          {selectedImageUrl && (
+            <div className="image-picker__preview">
+              <p className="rair-label">Selected</p>
+              <img src={selectedImageUrl} alt="Selected product" className="image-picker__preview-img" />
+            </div>
+          )}
+
+          {feedback && (
+            <p
+              className="rair-error"
+              role="alert"
+              style={{ color: feedback.startsWith("Product added") ? 'var(--rair-primary)' : undefined }}
+            >
+              {feedback}
+            </p>
+          )}
+
+          <div className="admin-form__actions">
+            <button type="submit" className="btn-rair btn-rair-primary" disabled={isSubmitting} style={{ flex: 1 }}>
+              {isSubmitting ? "Adding…" : "Add product"}
+            </button>
+            <button type="button" className="btn-rair btn-rair-ghost" onClick={() => navigate("/admin")}>
+              Cancel
+            </button>
           </div>
-        )}
-
-        {selectedImageUrl && (
-          <div className="mb-3">
-            <Form.Label>Selected Image</Form.Label><br />
-            <img src={selectedImageUrl} alt="Selected" style={{ maxWidth: "200px", borderRadius: "6px" }} />
-          </div>
-        )}
-
-        <Button type="submit" className="w-100" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting…" : "Add Product"}
-        </Button>
-
-        <Button variant="danger" className="mt-3 w-100" onClick={backToAdminBoard}>
-          Cancel & Return to Admin
-        </Button>
-      </Form>
-    </Container>
+        </form>
+      </div>
+    </main>
   );
 };
 

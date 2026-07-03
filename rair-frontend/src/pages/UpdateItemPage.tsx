@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { Modal, Button, Container, Row, Col, Form } from "react-bootstrap";
+import { Modal } from "react-bootstrap";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateItemSchema, TUpdateItemSchema } from "../schemas/TupdateItemSchemas";
 import { loadProducts } from "../api/loadProducts";
@@ -10,53 +10,39 @@ import ProductCard from "../components/ProductCard";
 import { Product } from "../types/Product";
 import { getIdToken } from "../auth/AuthStore";
 import { API_BASE_URL } from "../api/config";
+import { useNavigate } from "react-router-dom";
 
 const FOLDERS = ["crew-neck", "hoodies", "knitwear", "shirts"];
+const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 
 const UpdateItemPage = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Cloudinary picker state
   const [folder, setFolder] = useState(FOLDERS[0]);
   const [folderImages, setFolderImages] = useState<string[]>([]);
   const [loadingImages, setLoadingImages] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    setValue,
+    register, handleSubmit, control, reset, setValue,
     formState: { errors, isSubmitting },
   } = useForm<TUpdateItemSchema>({
     resolver: zodResolver(updateItemSchema),
-    defaultValues: {
-      stock: [{ size: "M", stockAmount: 0 }],
-    },
+    defaultValues: { stock: [{ size: "M", stockAmount: 0 }] },
   });
-
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const { fields, append, remove } = useFieldArray({ control, name: "stock" });
 
   const loadAndSetProducts = async () => {
-    try {
-      const loaded = await loadProducts();
-      setProducts(loaded);
-    } catch (err) {
-      console.error("Failed to load products:", err);
-    }
+    try { setProducts(await loadProducts()); }
+    catch (err) { console.error(err); }
   };
 
-  useEffect(() => {
-    loadAndSetProducts();
-  }, []);
+  useEffect(() => { loadAndSetProducts(); }, []);
 
   const loadImages = async (f: string) => {
     setLoadingImages(true);
@@ -67,33 +53,25 @@ const UpdateItemPage = () => {
       });
       const data = await res.json();
       setFolderImages(Array.isArray(data) ? data : (data.urls ?? []));
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingImages(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoadingImages(false); }
   };
 
-  useEffect(() => {
-    if (showModal) loadImages(folder);
-  }, [folder, showModal]);
+  useEffect(() => { if (showModal) loadImages(folder); }, [folder, showModal]);
 
   const openModal = (product: Product) => {
     setSelectedProduct(product);
     setSelectedImageUrl(product.imageUrl || null);
     setFolder(FOLDERS[0]);
-
+    setFeedback(null);
     setValue("name", product.name);
     setValue("category", product.category);
     setValue("description", product.description);
     setValue("price", product.price);
-    setValue(
-      "stock",
-      product.stock.map((item) => ({
-        size: item.size as "XS" | "S" | "M" | "L" | "XL" | "XXL",
-        stockAmount: item.stockAmount,
-      }))
-    );
+    setValue("stock", product.stock.map(item => ({
+      size: item.size as typeof SIZES[number],
+      stockAmount: item.stockAmount,
+    })));
     setShowModal(true);
   };
 
@@ -102,177 +80,219 @@ const UpdateItemPage = () => {
     reset();
     setSelectedImageUrl(null);
     setFolderImages([]);
+    setFeedback(null);
   };
 
   const onSubmit = async (data: TUpdateItemSchema) => {
-    if (!selectedProduct) {
-      alert("No product selected.");
+    if (!selectedProduct || !selectedImageUrl) {
+      setFeedback("Please select an image.");
       return;
     }
-    if (!selectedImageUrl) {
-      alert("Please select an image.");
-      return;
-    }
-
-    const updatedProduct = {
-      productId: selectedProduct.productId,
-      ...data,
-      imageUrl: selectedImageUrl,
-    };
-
-    const result = await updateProduct(updatedProduct);
-    if (!result) {
-      alert("Failed to update product.");
-      return;
-    }
-
-    alert("Product updated successfully!");
-    handleClose();
-    await loadAndSetProducts();
+    setFeedback(null);
+    const result = await updateProduct({ productId: selectedProduct.productId, ...data, imageUrl: selectedImageUrl });
+    if (!result) { setFeedback("Failed to update product."); return; }
+    setFeedback("Updated successfully.");
+    setTimeout(() => { handleClose(); loadAndSetProducts(); }, 700);
   };
 
   const handleDelete = async (productId: string) => {
-    const confirmed = window.confirm("Are you sure you want to delete this product?");
-    if (!confirmed) return;
-
+    if (!window.confirm("Delete this product permanently?")) return;
     try {
-      const productToDelete = products.find((p) => p.productId === productId);
-      if (!productToDelete) {
-        alert("Product not found.");
-        return;
-      }
-
-      const response = await deleteProduct(productToDelete.productId);
-      if (!response) throw new Error("Failed to delete product.");
-
-      alert("Product deleted successfully.");
+      const p = products.find(x => x.productId === productId);
+      if (!p) return;
+      const ok = await deleteProduct(p.productId);
+      if (!ok) throw new Error();
       await loadAndSetProducts();
-    } catch (err) {
-      alert(`Error deleting product: ${err instanceof Error ? err.message : "Unknown error"}`);
-    }
+    } catch { alert("Failed to delete product."); }
   };
 
-  return (
-    <Container className="py-4">
-      <Form className="mb-4">
-        <Form.Control
-          type="text"
-          placeholder="Search products by name..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </Form>
-      <Row className="g-4">
-        {filteredProducts.map((product) => (
-          <Col key={product.productId} xs={12} sm={6} md={4}>
-            <ProductCard product={product} openModal={openModal} handleDelete={handleDelete} />
-          </Col>
-        ))}
-      </Row>
+  const filtered = products.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-      <Modal show={showModal} onHide={handleClose} size="lg" centered>
+  return (
+    <main className="page-shell" id="main-content">
+      <div className="page-shell__inner">
+        <header className="page-shell__header">
+          <button type="button" className="btn-rair btn-rair-ghost" onClick={() => navigate("/admin")}>
+            ← Admin
+          </button>
+          <h1 className="page-shell__title">Update Items</h1>
+        </header>
+
+        {/* Search */}
+        <div style={{ marginBottom: '2.5rem' }}>
+          <input
+            className="rair-input"
+            type="search"
+            placeholder="Search products…"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            aria-label="Search products"
+          />
+        </div>
+
+        {/* Product grid */}
+        {filtered.length === 0 ? (
+          <p className="page-shell__empty">No products found.</p>
+        ) : (
+          <div className="admin-product-grid">
+            {filtered.map(p => (
+              <ProductCard
+                key={p.productId}
+                product={p}
+                openModal={openModal}
+                handleDelete={handleDelete}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Edit modal */}
+      <Modal show={showModal} onHide={handleClose} size="lg" centered dialogClassName="rair-modal">
         <Modal.Header closeButton>
-          <Modal.Title>Update Product</Modal.Title>
+          <Modal.Title>Edit product</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handleSubmit(onSubmit)}>
-            <Form.Group className="mb-3">
-              <Form.Label>Name</Form.Label>
-              <Form.Control type="text" {...register("name")} isInvalid={!!errors.name} />
-              <Form.Control.Feedback type="invalid">{errors.name?.message}</Form.Control.Feedback>
-            </Form.Group>
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="admin-form">
+            <div className="rair-field">
+              <label className="rair-label" htmlFor="upd-name">Name</label>
+              <input id="upd-name" type="text" className="rair-input" {...register("name")} />
+              {errors.name && <p className="rair-error">{errors.name.message}</p>}
+            </div>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Category</Form.Label>
-              <Form.Control type="text" {...register("category")} isInvalid={!!errors.category} />
-              <Form.Control.Feedback type="invalid">{errors.category?.message}</Form.Control.Feedback>
-            </Form.Group>
+            <div className="rair-field">
+              <label className="rair-label" htmlFor="upd-category">Category</label>
+              <input id="upd-category" type="text" className="rair-input" {...register("category")} />
+              {errors.category && <p className="rair-error">{errors.category.message}</p>}
+            </div>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Description</Form.Label>
-              <Form.Control as="textarea" rows={3} {...register("description")} isInvalid={!!errors.description} />
-              <Form.Control.Feedback type="invalid">{errors.description?.message}</Form.Control.Feedback>
-            </Form.Group>
+            <div className="rair-field">
+              <label className="rair-label" htmlFor="upd-desc">Description</label>
+              <textarea
+                id="upd-desc"
+                className="rair-input"
+                rows={3}
+                style={{ resize: 'vertical' }}
+                {...register("description")}
+              />
+              {errors.description && <p className="rair-error">{errors.description.message}</p>}
+            </div>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Price ($)</Form.Label>
-              <Form.Control type="number" step="0.01" {...register("price")} isInvalid={!!errors.price} />
-              <Form.Control.Feedback type="invalid">{errors.price?.message}</Form.Control.Feedback>
-            </Form.Group>
+            <div className="rair-field">
+              <label className="rair-label" htmlFor="upd-price">Price ($)</label>
+              <input id="upd-price" type="number" step="0.01" className="rair-input" {...register("price")} />
+              {errors.price && <p className="rair-error">{errors.price.message}</p>}
+            </div>
 
-            <h5>Stock</h5>
+            <div className="admin-section-divider">
+              <span className="admin-section-label">Stock</span>
+            </div>
+
             {fields.map((field, index) => (
-              <Row key={field.id} className="align-items-end mb-3">
-                <Col md={5}>
-                  <Form.Label>Size</Form.Label>
-                  <Form.Select {...register(`stock.${index}.size` as const)}>
-                    {(["XS", "S", "M", "L", "XL", "XXL"] as const).map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </Form.Select>
-                </Col>
-                <Col md={5}>
-                  <Form.Label>Amount</Form.Label>
-                  <Form.Control type="number" {...register(`stock.${index}.stockAmount` as const)} />
-                </Col>
-                <Col md={2}>
-                  <Button variant="danger" onClick={() => remove(index)}>Remove</Button>
-                </Col>
-              </Row>
+              <div key={field.id} className="stock-row">
+                <div className="rair-field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label className="rair-label" htmlFor={`upd-size-${index}`}>Size</label>
+                  <select id={`upd-size-${index}`} className="rair-select" {...register(`stock.${index}.size` as const)}>
+                    {SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="rair-field" style={{ marginBottom: 0, flex: 1 }}>
+                  <label className="rair-label" htmlFor={`upd-qty-${index}`}>Qty</label>
+                  <input id={`upd-qty-${index}`} type="number" className="rair-input" {...register(`stock.${index}.stockAmount` as const)} />
+                </div>
+                <button
+                  type="button"
+                  className="btn-rair btn-rair-danger stock-row__remove"
+                  onClick={() => remove(index)}
+                  aria-label="Remove size"
+                >
+                  ×
+                </button>
+              </div>
             ))}
-            <Button variant="secondary" className="mb-3" onClick={() => append({ size: "M", stockAmount: 0 })}>
-              Add Stock
-            </Button>
 
-            {/* Cloudinary image picker */}
-            <Form.Group className="mb-3">
-              <Form.Label>Image Folder</Form.Label>
-              <Form.Select value={folder} onChange={e => { setFolder(e.target.value); setSelectedImageUrl(null); }}>
+            <button
+              type="button"
+              className="btn-rair btn-rair-ghost"
+              style={{ marginBottom: '2rem' }}
+              onClick={() => append({ size: "M", stockAmount: 0 })}
+            >
+              + Add size
+            </button>
+
+            <div className="admin-section-divider">
+              <span className="admin-section-label">Image</span>
+            </div>
+
+            <div className="rair-field">
+              <label className="rair-label" htmlFor="upd-folder">Cloudinary folder</label>
+              <select
+                id="upd-folder"
+                className="rair-select"
+                value={folder}
+                onChange={e => { setFolder(e.target.value); setSelectedImageUrl(null); }}
+              >
                 {FOLDERS.map(f => <option key={f} value={f}>{f}</option>)}
-              </Form.Select>
-            </Form.Group>
+              </select>
+            </div>
 
             {loadingImages ? (
-              <p>Loading images…</p>
+              <p className="admin-loading">Loading images&hellip;</p>
+            ) : folderImages.length === 0 ? (
+              <p className="admin-empty">No images in this folder.</p>
             ) : (
-              <div className="mb-3">
-                <Form.Label>Select an image</Form.Label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                  {folderImages.map(url => (
-                    <img
-                      key={url}
-                      src={url}
-                      alt=""
-                      onClick={() => setSelectedImageUrl(url)}
-                      style={{
-                        width: "100px",
-                        height: "100px",
-                        objectFit: "cover",
-                        cursor: "pointer",
-                        border: selectedImageUrl === url ? "3px solid #0d6efd" : "3px solid transparent",
-                        borderRadius: "6px",
-                      }}
-                    />
-                  ))}
-                </div>
-                {folderImages.length === 0 && <p className="text-muted">No images found in this folder.</p>}
+              <div className="image-picker" role="listbox" aria-label="Select image">
+                {folderImages.map(url => (
+                  <button
+                    key={url}
+                    type="button"
+                    role="option"
+                    aria-selected={selectedImageUrl === url}
+                    className={`image-picker__btn${selectedImageUrl === url ? ' image-picker__btn--selected' : ''}`}
+                    onClick={() => setSelectedImageUrl(url)}
+                  >
+                    <img src={url} alt="" className="image-picker__img" loading="lazy" />
+                  </button>
+                ))}
               </div>
             )}
 
             {selectedImageUrl && (
-              <div className="mb-3">
-                <Form.Label>Selected Image</Form.Label><br />
-                <img src={selectedImageUrl} alt="Selected" style={{ maxWidth: "150px", borderRadius: "6px" }} />
+              <div className="image-picker__preview">
+                <p className="rair-label">Selected</p>
+                <img src={selectedImageUrl} alt="Selected" className="image-picker__preview-img" />
               </div>
             )}
 
-            <Button type="submit" className="w-100" disabled={isSubmitting}>
-              {isSubmitting ? "Updating…" : "Update Product"}
-            </Button>
-          </Form>
+            {feedback && (
+              <p
+                className="rair-error"
+                role="alert"
+                style={{ color: feedback.startsWith("Updated") ? 'var(--rair-primary)' : undefined }}
+              >
+                {feedback}
+              </p>
+            )}
+
+            <div className="admin-form__actions">
+              <button
+                type="submit"
+                className="btn-rair btn-rair-primary"
+                disabled={isSubmitting}
+                style={{ flex: 1 }}
+              >
+                {isSubmitting ? "Saving…" : "Save changes"}
+              </button>
+              <button type="button" className="btn-rair btn-rair-ghost" onClick={handleClose}>
+                Cancel
+              </button>
+            </div>
+          </form>
         </Modal.Body>
       </Modal>
-    </Container>
+    </main>
   );
 };
 

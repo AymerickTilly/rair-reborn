@@ -1,6 +1,3 @@
-// src/components/ProductCard.tsx
-import React, { useState } from "react";
-import { Card, Button } from "react-bootstrap";
 import { Product } from "../types/Product";
 
 interface ProductCardProps {
@@ -9,84 +6,45 @@ interface ProductCardProps {
   handleDelete: (productId: string) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({
-  product,
-  openModal,
-  handleDelete,
-}) => {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <Card className="shadow-sm h-100">
-      <Card.Body className="d-flex flex-column justify-content-between">
-        <div>
-          <Card.Title
-            className="fw-bold fs-5 text-center"
-            style={{ minHeight: "3rem" }}
-          >
-            {product.name}
-          </Card.Title>
-
-          <Card.Text
-            style={{
-              maxHeight: expanded ? "none" : "60px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: expanded ? "normal" : "nowrap",
-              marginBottom: "0.5rem",
-            }}
-          >
-            {product.description}
-          </Card.Text>
-
-          <div className="text-center mb-2">
-            <Card.Img
-              src={product.imageUrl}
-              alt={product.name}
-              style={{
-                maxWidth: "150px",
-                maxHeight: "150px",
-                objectFit: "contain",
-              }}
-            />
-          </div>
-
-          <Card.Text className="fw-bold">Price: ${product.price}</Card.Text>
-
-          {product.onSale && (
-            <Card.Text className="text-danger">
-              Sale Price: ${product.salePrice}
-            </Card.Text>
-          )}
-        </div>
-
-        <div className="d-flex flex-column gap-2 mt-2">
-          <Button
-            variant="outline-primary"
-            size="sm"
-            onClick={() => openModal(product)}
-          >
-            Update
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => handleDelete(product.productId)}
-          >
-            Delete
-          </Button>
-          <Button
-            variant="link"
-            size="sm"
-            onClick={() => setExpanded((prev) => !prev)}
-            style={{ paddingLeft: 0 }}
-          >
-            {expanded ? "Show Less" : "Read More"}
-          </Button>
-        </div>
-      </Card.Body>
-    </Card>
-  );
-};
+const ProductCard = ({ product, openModal, handleDelete }: ProductCardProps) => (
+  <div className="admin-product-card">
+    <div className="admin-product-card__img-wrap">
+      <img
+        src={product.imageUrl}
+        alt={product.name}
+        className="admin-product-card__img"
+        loading="lazy"
+      />
+    </div>
+    <div className="admin-product-card__body">
+      <p className="admin-product-card__name">{product.name}</p>
+      <p className="admin-product-card__price">${product.price}</p>
+      <p className="admin-product-card__category">{product.category}</p>
+      <div className="admin-product-card__stock">
+        {product.stock.map((s, i) => (
+          <span key={i} className="stock-tag">{s.size} · {s.stockAmount}</span>
+        ))}
+      </div>
+    </div>
+    <div className="admin-product-card__actions">
+      <button
+        type="button"
+        className="btn-rair btn-rair-outline"
+        onClick={() => openModal(product)}
+        style={{ flex: 1 }}
+      >
+        Edit
+      </button>
+      <button
+        type="button"
+        className="btn-rair btn-rair-danger"
+        onClick={() => handleDelete(product.productId)}
+        style={{ flex: 1 }}
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+);
 
 export default ProductCard;

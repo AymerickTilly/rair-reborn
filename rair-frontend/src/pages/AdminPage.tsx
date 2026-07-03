@@ -1,45 +1,35 @@
-import { Button, Card, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 const AdminPage = () => {
   const navigate = useNavigate();
 
+  const actions = [
+    { label: "Add item",     icon: "+",  to: "/admin/add-item"    },
+    { label: "Update items", icon: "✎",  to: "/admin/update-item" },
+    { label: "Orders",       icon: "☰",  to: "/admin/orders"      },
+  ];
+
   return (
-    <div
-      className="d-flex flex-column min-vh-100"
-      style={{ backgroundColor: "#423c37" }}
-    >
-      <Container className="flex-grow-1 d-flex justify-content-center align-items-center py-5 px-3">
-        <Card
-          className="shadow-sm p-4 w-100"
-          style={{
-            maxWidth: "500px",
-            height: "500px",
-            borderRadius: "none",
-            backgroundColor: "#ffffff",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center"
-          }}
-        >
-          <h2 className="text-center mb-5">Admin Dashboard</h2>
-
-          <div className="d-grid gap-4">
-            <Button variant="dark" size="lg" onClick={() => navigate("/admin/add-item")}>
-              <i className="bi bi-plus me-2 text-white"></i> Add Item
-            </Button>
-
-            <Button variant="dark" size="lg" onClick={() => navigate("/admin/update-item")}>
-              <i className="bi bi-pencil me-2 text-white"></i> Update Item
-            </Button>
-
-            <Button variant="dark" size="lg" onClick={() => navigate("/admin/orders")}>
-              <i className="bi bi-box-seam me-2 text-white"></i> List Orders
-            </Button>
-          </div>
-        </Card>
-      </Container>
-    </div>
+    <main className="auth-page" id="main-content">
+      <div className="admin-dashboard">
+        <div className="auth-card__brand">RAIR</div>
+        <h1 className="admin-dashboard__title">Admin</h1>
+        <nav className="admin-action-list" aria-label="Admin actions">
+          {actions.map(({ label, icon, to }) => (
+            <button
+              key={to}
+              type="button"
+              className="admin-action-btn"
+              onClick={() => navigate(to)}
+            >
+              <span className="admin-action-btn__icon" aria-hidden="true">{icon}</span>
+              <span>{label}</span>
+              <span className="admin-action-btn__arrow" aria-hidden="true">→</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+    </main>
   );
 };
 
