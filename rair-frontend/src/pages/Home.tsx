@@ -23,10 +23,10 @@ const Home = () => {
 
   useEffect(() => {
     loadProducts()
-      .then(data => {
+      .then((data: Product[]) => {
         setProducts(data);
-        const first = Array.from(new Set(data.map((p: Product) => p.category)))[0];
-        if (first) setActiveCategory(first);
+        const cats = Array.from(new Set(data.map(p => p.category)));
+        if (cats[0]) setActiveCategory(cats[0]);
       })
       .catch(console.error)
       .finally(() => setProductsLoading(false));
