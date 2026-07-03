@@ -59,9 +59,9 @@ const Home = () => {
             <p className="brand-story__kicker">About this project</p>
             <h2 className="brand-story__heading">A school project in Cloud Computing.</h2>
             <p className="brand-story__body">
-              RAIR is the front-end of a Cloud Computing assignment built with React,
-              ASP.NET Core, Supabase, and deployed on Vercel and Render. The brief was to
-              design and deploy a full-stack e-commerce platform&mdash;so we made one worth wearing.
+              The original assignment used AWS&mdash;backend, APIs, S3 bucket, the works. This
+              version is a full rebuild: same concept, rewritten in C# and ASP.NET Core to
+              explore a new stack, with Supabase for auth and data, deployed on Vercel and Render.
             </p>
             <a href="/shop" className="btn-rair btn-rair-ghost brand-story__cta">
               Browse the shop
