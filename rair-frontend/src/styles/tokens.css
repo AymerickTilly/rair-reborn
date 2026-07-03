@@ -728,6 +728,124 @@ body {
   .page-shell__inner { padding: 0 1.25rem; }
 }
 
+/* ═══════════════════════════════════════════
+   RESPONSIVE — TABLET  (≤ 1024px)
+   iPad, Android tablet landscape + portrait
+   ═══════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  /* Page shell */
+  .page-shell { padding-top: 5.5rem; padding-bottom: 4rem; }
+  .page-shell__inner { padding: 0 2rem; }
+  .page-shell__inner--narrow { max-width: 100%; }
+
+  /* Cart: still grid but a bit tighter */
+  .cart-item { gap: 1.25rem; }
+
+  /* Orders: admin picker can stack */
+  .order-card__actions { flex-wrap: wrap; }
+
+  /* Auth: always fine at max-width 420px */
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — LARGE PHONE / SMALL TABLET  (≤ 768px)
+   ═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .page-shell { padding-top: 5rem; }
+
+  /* Checkout items — tighter image */
+  .checkout-item { grid-template-columns: 56px 1fr auto; }
+  .checkout-item__img { width: 56px; }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE — PHONE  (≤ 480px)
+   iPhone, Android phone
+   ═══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  /* Shell */
+  .page-shell { padding-top: 4.5rem; padding-bottom: 3rem; }
+  .page-shell__inner { padding: 0 1rem; }
+  .page-shell__header { margin-bottom: 1.75rem; padding-bottom: 1.25rem; }
+  .page-shell__title { font-size: clamp(2rem, 10vw, 2.75rem); }
+
+  /* ── Buttons: minimum touch target 44px ── */
+  .btn-rair {
+    min-height: 44px;
+    padding: 0.75rem 1.25rem;
+  }
+
+  /* ── Inputs: minimum touch target + no zoom on focus (iOS) ── */
+  .rair-input,
+  .rair-select {
+    font-size: 1rem;   /* prevents iOS zoom on focus */
+    min-height: 44px;
+    padding: 0.75rem 0;
+  }
+
+  /* ── CART ── */
+  .cart-list { background: none; gap: 0; }
+
+  /* Reflow cart-item to 2-row flex on phone */
+  .cart-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--rair-border);
+    background: var(--rair-bg);
+  }
+  .cart-item__check-wrap { flex: 0 0 auto; align-self: center; }
+  .cart-item__img-wrap   { flex: 0 0 64px; width: 64px; }
+  /* info gets min-width: 160px so it fills row 1 and forces row 2 wrap */
+  .cart-item__info       { flex: 1 1 auto; min-width: 160px; }
+  /* these three wrap to row 2 */
+  .cart-item__controls   { flex: 0 0 auto; }
+  .cart-item__subtotal   { flex: 0 0 auto; align-self: center; }
+  .cart-item__remove     { flex: 0 0 auto; margin-left: auto; }
+  .cart-item__qty        { width: 64px !important; }
+
+  .cart-summary {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1.5rem 0 0;
+  }
+  .cart-summary__total { display: flex; align-items: center; gap: 0.75rem; }
+
+  /* ── CHECKOUT ── */
+  .checkout-section { margin-bottom: 2rem; padding-bottom: 1.5rem; }
+  .checkout-item {
+    grid-template-columns: 56px 1fr;
+    grid-template-rows: auto auto;
+  }
+  .checkout-item__total {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: 0.875rem;
+  }
+  .checkout-grand__amount { font-size: 1.5rem; }
+
+  /* ── PROFILE ── */
+  .profile-card { flex-direction: column; gap: 1.25rem; }
+  .profile-card__body { min-width: 0; }
+  .profile-card__actions { flex-wrap: wrap; }
+
+  /* ── ORDERS ── */
+  .orders-filters { flex-direction: column; }
+  .orders-filters__search,
+  .orders-filters__status { width: 100%; }
+  .order-card { padding: 1rem; }
+  .order-card__actions { flex-direction: column; align-items: stretch; }
+  .order-card__actions .rair-select { width: 100% !important; }
+  .order-card__actions .btn-rair { width: 100%; justify-content: center; }
+  .order-card__meta { flex-direction: column; gap: 0.25rem; }
+
+  /* ── MODALS: full-width on phone ── */
+  .rair-modal .modal-dialog { margin: 0.5rem; max-width: calc(100vw - 1rem); }
+}
+
 /* ══════════════════════════════
    REDUCED MOTION
    ══════════════════════════════ */

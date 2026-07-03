@@ -119,11 +119,24 @@
   outline-offset: 4px;
 }
 
+/* ── Tablet (769–1024px): collapse gap slightly ── */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .rair-nav { padding: 1.25rem 2rem; }
+  .rair-nav__list { gap: 1.5rem; }
+}
+
 /* ── Mobile ── */
 @media (max-width: 768px) {
-  .rair-nav { padding: 1.25rem 1.5rem; }
+  .rair-nav { padding: 1rem 1.25rem; }
 
-  .rair-nav__burger { display: flex; }
+  .rair-nav__burger {
+    display: flex;
+    /* WCAG 2.5.8 — minimum 44×44px touch target */
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
 
   .rair-nav__menu {
     position: fixed;

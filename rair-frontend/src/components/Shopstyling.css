@@ -260,9 +260,53 @@
   text-transform: uppercase;
 }
 
-@media (max-width: 600px) {
-  .shop__inner { padding: 0 1.25rem; }
-  .shop__header { flex-direction: column; align-items: flex-start; }
+/* ═══════════════════════════════════════
+   TABLET (≤ 1024px)
+   ═══════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .shop { padding-top: 5.5rem; }
+  .shop__inner { padding: 0 2rem; }
+  .shop__grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .shop-modal .modal-dialog { max-width: 480px; }
+}
+
+/* ═══════════════════════════════════════
+   LARGE PHONE / SMALL TABLET (≤ 768px)
+   ═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  .shop { padding-top: 5rem; }
+  .shop__header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .shop__search-wrap { width: 100%; }
+  .shop__grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+}
+
+/* ═══════════════════════════════════════
+   PHONE (≤ 480px)
+   ═══════════════════════════════════════ */
+@media (max-width: 480px) {
+  .shop { padding-top: 4.5rem; }
+  .shop__inner { padding: 0 1rem; }
+  .shop__header { margin-bottom: 2rem; padding-bottom: 1.25rem; }
+  .shop__search { font-size: 1rem; } /* prevents iOS zoom on focus */
+
+  /* 2 columns on phone */
+  .shop__grid { grid-template-columns: repeat(2, 1fr); gap: 1px; }
+
+  /* Tighter card on 2-col layout */
+  .product-card__img-wrap { aspect-ratio: 2 / 3; }
+  .product-card__body { padding: 0.75rem 0.75rem 1rem; }
+  .product-card__name { font-size: 0.875rem; letter-spacing: 0.03em; }
+  .product-card__desc { display: none; } /* too cramped on 2-col */
+  .product-card__price { font-size: 0.875rem; }
+  .product-card__stock { display: none; } /* stock visible in modal */
+
+  /* Touch target for quick-view overlay */
+  .product-card__quick-label { display: none; }
+
+  /* Modal: nearly full-screen on phone */
+  .shop-modal .modal-dialog { max-width: calc(100vw - 1rem); margin: 0.5rem auto; }
+  .shop-modal__img { height: 200px; }
+  .shop-modal__name { font-size: 1.375rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
