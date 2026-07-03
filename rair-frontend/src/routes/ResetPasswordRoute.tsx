@@ -1,13 +1,10 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../auth/AuthStore';
+import Spinner from '../components/Spinner';
 
 const ResetPasswordRoute = () => {
   const { passwordReset, loading } = useAuthStore();
-  console.log('ResetPasswordRoute: resetPassword=', passwordReset, 'loading=', loading);
-  if (loading) {
-    console.log('ConfirmRegisterRoute: Showing loading state');
-    return <div>Loading...</div>;
-  }
+  if (loading) return <Spinner />;
   return passwordReset ? <Outlet /> : <Navigate to="/login" replace />;
 };
 

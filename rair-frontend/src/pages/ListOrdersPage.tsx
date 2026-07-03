@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '../auth/AuthStore';
 import { Modal } from 'react-bootstrap';
+import Spinner from '../components/Spinner';
 import { loadOrders } from '../api/loadOrders';
 import { loadProductById } from '../api/loadProduct';
 import { updateOrder } from '../api/update_order';
@@ -122,15 +123,7 @@ const ListOrdersPage = () => {
     return '';
   };
 
-  if (!userId || loading) {
-    return (
-      <div className="page-shell" id="main-content">
-        <div className="page-shell__inner">
-          <p className="page-shell__empty">Loading orders&hellip;</p>
-        </div>
-      </div>
-    );
-  }
+  if (!userId || loading) return <Spinner />;
 
   return (
     <main className="page-shell" id="main-content">

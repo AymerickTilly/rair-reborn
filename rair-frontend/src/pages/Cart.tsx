@@ -4,6 +4,7 @@ import { useAuthStore } from '../auth/AuthStore';
 import { loadCartsByID } from '../api/loadCarts';
 import { Cart } from '../types/Cart';
 import { deleteCart } from '../api/deleteCart';
+import Spinner from '../components/Spinner';
 
 const CartPage: React.FC = () => {
   const navigate = useNavigate();
@@ -60,15 +61,7 @@ const CartPage: React.FC = () => {
       unitPrice: item.price,
     }));
 
-  if (loading || isLoadingCarts) {
-    return (
-      <div className="page-shell" id="main-content">
-        <div className="page-shell__inner">
-          <p className="page-shell__empty">Loading cart&hellip;</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading || isLoadingCarts) return <Spinner />;
 
   return (
     <main className="page-shell" id="main-content">

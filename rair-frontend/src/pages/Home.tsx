@@ -5,6 +5,7 @@ import { loadProducts } from '../api/loadProducts';
 import Footer from '../components/Footer';
 import { Product } from '../types/Product';
 import { Slide } from '../types/Slide';
+import Spinner from '../components/Spinner';
 import '../components/Homestyling.css';
 
 const Home = () => {
@@ -19,19 +20,7 @@ const Home = () => {
       .finally(() => setProductsLoading(false));
   }, []);
 
-  if (loading || productsLoading) {
-    return (
-      <div className="home" id="main-content">
-        <div className="hero">
-          <div className="hero__inner">
-            <span className="hero__eyebrow">New Collection</span>
-            <h1 className="hero__brand">RAIR</h1>
-            <p className="hero__tagline">Loading collection&hellip;</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading || productsLoading) return <Spinner />;
 
   const categories = Array.from(new Set(products.map((p) => p.category)));
 

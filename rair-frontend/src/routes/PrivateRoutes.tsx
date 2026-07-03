@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../auth/AuthStore';
+import Spinner from '../components/Spinner';
 
 interface PrivateRouteProps {
   allowedGroups: string[];
@@ -8,9 +9,7 @@ interface PrivateRouteProps {
 const PrivateRoutes = ({ allowedGroups }: PrivateRouteProps) => {
   const { user, groups, loading } = useAuthStore();
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  if (loading) return <Spinner />;
 
   const isAllowed = groups.some(group => allowedGroups.includes(group));
 
