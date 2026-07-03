@@ -8,14 +8,26 @@ import { Slide } from '../types/Slide';
 import Spinner from '../components/Spinner';
 import '../components/Homestyling.css';
 
+const CATEGORY_LABELS: Record<string, string> = {
+  'crew-neck': 'Crew Neck',
+  'hoodies':   'Hoodies',
+  'knitwear':  'Knitwear',
+  'shirts':    'Shirts',
+};
+
 const Home = () => {
   const { loading } = useAuthStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<string>('');
 
   useEffect(() => {
     loadProducts()
-      .then(setProducts)
+      .then(data => {
+        setProducts(data);
+        const first = Array.from(new Set(data.map((p: Product) => p.category)))[0];
+        if (first) setActiveCategory(first);
+      })
       .catch(console.error)
       .finally(() => setProductsLoading(false));
   }, []);
@@ -34,7 +46,17 @@ const Home = () => {
     );
   }
 
-  const categories = Array.from(new Set(products.map((p) => p.category)));
+  const categories = Array.from(new Set(products.map(p => p.category)));
+
+  const activeSlides: Slide[] = products
+    .filter(p => p.category === activeCategory)
+    .map(p => ({
+      image: p.imageUrl,
+      alt: p.name,
+      title: p.name,
+      text: p.description,
+      productId: p.productId,
+    }));
 
   return (
     <div className="home" id="main-content">
@@ -59,29 +81,31 @@ const Home = () => {
       {/* Collections */}
       <section id="collections" className="collections" aria-label="Collections">
         <div className="collections__inner">
+
           <header className="collections__header">
-            <h2 className="collections__title">Collections</h2>
+            <p className="collections__title">Collections</p>
+            <nav className="collections-tabs" aria-label="Product categories">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`collections-tab${activeCategory === cat ? ' is-active' : ''}`}
+                  onClick={() => setActiveCategory(cat)}
+                  aria-pressed={activeCategory === cat}
+                >
+                  {CATEGORY_LABELS[cat] ?? cat}
+                </button>
+              ))}
+            </nav>
           </header>
 
-          {categories.map((category) => {
-            const categoryProducts = products.filter((p) => p.category === category);
-            const slides: Slide[] = categoryProducts.map((p) => ({
-              image: p.imageUrl,
-              alt: `${p.name}`,
-              title: p.name,
-              text: p.description,
-              productId: p.productId,
-            }));
+          <div className="collection-stage">
+            <h2 className="collection-stage__name">
+              {CATEGORY_LABELS[activeCategory] ?? activeCategory}
+            </h2>
+            <CarouselComponent slides={activeSlides} />
+          </div>
 
-            return (
-              <div key={category} className="collection-row">
-                <div className="collection-row__header">
-                  <h3 className="collection-row__name">{category}</h3>
-                </div>
-                <CarouselComponent slides={slides} />
-              </div>
-            );
-          })}
         </div>
       </section>
 
