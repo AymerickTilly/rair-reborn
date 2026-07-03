@@ -9,9 +9,17 @@ import { loadProductById } from "../api/loadProduct";
 import { useToastStore } from "../stores/toastStore";
 import "../components/Shopstyling.css";
 
+const CATEGORY_LABELS: Record<string, string> = {
+  'crew-neck': 'Crew Neck',
+  'hoodies': 'Hoodies',
+  'knitwear': 'Knitwear',
+  'shirts': 'Shirts',
+};
+
 const Shop = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeCategory, setActiveCategory] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
@@ -71,9 +79,13 @@ const Shop = () => {
     }
   };
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const categories = Array.from(new Set(products.map(p => p.category)));
+
+  const filtered = products.filter((p) => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = activeCategory === "" || p.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="shop" id="main-content">
@@ -91,6 +103,30 @@ const Shop = () => {
             />
           </div>
         </header>
+
+        {categories.length > 0 && (
+          <nav className="shop__tabs" aria-label="Filter by category">
+            <button
+              type="button"
+              className={`shop-tab${activeCategory === "" ? " is-active" : ""}`}
+              onClick={() => setActiveCategory("")}
+              aria-pressed={activeCategory === ""}
+            >
+              All
+            </button>
+            {categories.map(cat => (
+              <button
+                key={cat}
+                type="button"
+                className={`shop-tab${activeCategory === cat ? " is-active" : ""}`}
+                onClick={() => setActiveCategory(cat)}
+                aria-pressed={activeCategory === cat}
+              >
+                {CATEGORY_LABELS[cat] ?? cat}
+              </button>
+            ))}
+          </nav>
+        )}
 
         <div className="shop__grid" role="list">
           {filtered.length === 0 && (

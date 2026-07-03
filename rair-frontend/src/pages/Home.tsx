@@ -1,38 +1,12 @@
-import { useEffect, useState } from 'react';
 import { useAuthStore } from '../auth/AuthStore';
-import CarouselComponent from '../components/Carousel';
-import { loadProducts } from '../api/loadProducts';
 import Footer from '../components/Footer';
-import { Product } from '../types/Product';
-import { Slide } from '../types/Slide';
 import Spinner from '../components/Spinner';
 import '../components/Homestyling.css';
 
-const CATEGORY_LABELS: Record<string, string> = {
-  'crew-neck': 'Crew Neck',
-  'hoodies':   'Hoodies',
-  'knitwear':  'Knitwear',
-  'shirts':    'Shirts',
-};
-
 const Home = () => {
   const { loading } = useAuthStore();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [productsLoading, setProductsLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState<string>('');
 
-  useEffect(() => {
-    loadProducts()
-      .then((data: Product[]) => {
-        setProducts(data);
-        const cats = Array.from(new Set(data.map(p => p.category)));
-        if (cats[0]) setActiveCategory(cats[0]);
-      })
-      .catch(console.error)
-      .finally(() => setProductsLoading(false));
-  }, []);
-
-  if (loading || productsLoading) {
+  if (loading) {
     return (
       <div className="home" id="main-content">
         <div className="hero">
@@ -46,18 +20,6 @@ const Home = () => {
     );
   }
 
-  const categories = Array.from(new Set(products.map(p => p.category)));
-
-  const activeSlides: Slide[] = products
-    .filter(p => p.category === activeCategory)
-    .map(p => ({
-      image: p.imageUrl,
-      alt: p.name,
-      title: p.name,
-      text: p.description,
-      productId: p.productId,
-    }));
-
   return (
     <div className="home" id="main-content">
       {/* Hero */}
@@ -65,9 +27,9 @@ const Home = () => {
         <div className="hero__inner">
           <span className="hero__eyebrow">New Collection</span>
           <h1 className="hero__brand" id="hero-brand">RAIR</h1>
-          <p className="hero__tagline">Quality meets comfort&mdash;without compromise</p>
+          <p className="hero__tagline">Cold. Precise. Uncompromising.</p>
           <div className="hero__cta">
-            <a href="#collections" className="btn-rair btn-rair-primary">
+            <a href="/shop" className="btn-rair btn-rair-primary">
               Shop Now
             </a>
           </div>
@@ -78,32 +40,32 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Collections */}
-      <section id="collections" className="collections" aria-label="Collections">
-        <div className="collections__inner">
+      {/* Brand story */}
+      <section className="brand-story" aria-label="About RAIR">
+        <div className="brand-story__inner">
 
-          <header className="collections__header">
-            <p className="collections__title">Collections</p>
-            <nav className="collections-tabs" aria-label="Product categories">
-              {categories.map(cat => (
-                <button
-                  key={cat}
-                  type="button"
-                  className={`collections-tab${activeCategory === cat ? ' is-active' : ''}`}
-                  onClick={() => setActiveCategory(cat)}
-                  aria-pressed={activeCategory === cat}
-                >
-                  {CATEGORY_LABELS[cat] ?? cat}
-                </button>
-              ))}
-            </nav>
-          </header>
+          <div className="brand-story__block">
+            <p className="brand-story__kicker">The brand</p>
+            <h2 className="brand-story__heading">Built for clarity.<br />Stripped of noise.</h2>
+            <p className="brand-story__body">
+              RAIR is a contemporary clothing line defined by restraint. Each piece is designed
+              with a single intention: to hold its shape, sit precisely, and outlast the moment
+              it was bought for. No excess. No compromise. Just garments that do exactly what
+              they are supposed to do.
+            </p>
+          </div>
 
-          <div className="collection-stage">
-            <h2 className="collection-stage__name">
-              {CATEGORY_LABELS[activeCategory] ?? activeCategory}
-            </h2>
-            <CarouselComponent slides={activeSlides} />
+          <div className="brand-story__block brand-story__block--aside">
+            <p className="brand-story__kicker">About this project</p>
+            <h2 className="brand-story__heading">A school project in Cloud Computing.</h2>
+            <p className="brand-story__body">
+              RAIR is the front-end of a Cloud Computing assignment built with React,
+              ASP.NET Core, Supabase, and deployed on Vercel and Render. The brief was to
+              design and deploy a full-stack e-commerce platform&mdash;so we made one worth wearing.
+            </p>
+            <a href="/shop" className="btn-rair btn-rair-ghost brand-story__cta">
+              Browse the shop
+            </a>
           </div>
 
         </div>
