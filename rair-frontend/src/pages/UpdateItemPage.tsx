@@ -65,7 +65,6 @@ const UpdateItemPage = () => {
     setSelectedProduct(product);
     setSelectedImageUrl(product.imageUrl || null);
     setFolder(FOLDERS[0]);
-    setFeedback(null);
     setValue("name", product.name);
     setValue("category", product.category);
     setValue("description", product.description);
