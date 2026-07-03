@@ -8,7 +8,7 @@ public class Order
     public string Date { get; set; } = DateTime.UtcNow.ToString("o");
     public string PaymentMethod { get; set; } = string.Empty;
     public string ShippingAddress { get; set; } = string.Empty;
-    public string Status { get; set; } = "Processing";
+    public string Status { get; set; } = "PROCESSING";
     public decimal TotalAmount { get; set; }
 
     // One order has many order lines (the products inside it)

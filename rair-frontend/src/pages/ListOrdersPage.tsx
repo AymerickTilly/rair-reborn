@@ -62,7 +62,7 @@ const ListOrdersPage = () => {
         o.shippingAddress.toLowerCase().includes(s) ||
         o.username.toLowerCase().includes(s) ||
         o.products.some(p => p.name.toLowerCase().includes(s))) &&
-      (statusFilter === 'All' || o.status === statusFilter)
+      (statusFilter === 'All' || o.status.toUpperCase() === statusFilter)
     );
   });
 
@@ -205,7 +205,7 @@ const ListOrdersPage = () => {
                   Total: <strong>${grandTotal(o.products)}</strong>
                 </p>
                 <div className="order-card__actions">
-                  {isCustomer && o.status === 'PROCESSING' && (
+                  {isCustomer && ['PROCESSING', 'PENDING'].includes(o.status.toUpperCase()) && (
                     <button
                       type="button"
                       className="btn-rair btn-rair-danger"
