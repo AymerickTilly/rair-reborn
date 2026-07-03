@@ -7,7 +7,7 @@ const ConfirmRegisterForm = () => {
   return (
     <main className="auth-page" id="main-content">
       <div className="auth-card">
-        <div className="auth-card__brand">RAIR</div>
+        <img src="/favicon.svg" alt="RAIR" className="auth-card__brand" />
         <h1 className="auth-card__title">Check email</h1>
         <p className="auth-card__subtitle">
           We sent a confirmation link to{" "}

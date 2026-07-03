@@ -31,7 +31,7 @@ const AskResetCode = () => {
     return (
       <main className="auth-page" id="main-content">
         <div className="auth-card">
-          <div className="auth-card__brand">RAIR</div>
+          <img src="/favicon.svg" alt="RAIR" className="auth-card__brand" />
           <h1 className="auth-card__title">Check your inbox</h1>
           <p className="auth-card__subtitle">
             We sent a reset link to <strong style={{ color: 'var(--rair-ink)' }}>{getValues('email')}</strong>.

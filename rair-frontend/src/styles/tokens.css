@@ -425,13 +425,10 @@ body {
    AUTH BRAND MARK
    ══════════════════════════════ */
 .auth-card__brand {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 1.5rem;
-  letter-spacing: 0.35em;
-  text-transform: uppercase;
-  color: var(--rair-primary);
-  margin-bottom: 2rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
   display: block;
 }
 
