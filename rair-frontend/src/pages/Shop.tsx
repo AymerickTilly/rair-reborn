@@ -25,7 +25,8 @@ const Shop = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
-  const userId = useAuthStore((state) => state.userId);
+  const { userId, groups } = useAuthStore();
+  const isAdmin = groups.includes('Admin');
   const { addToast } = useToastStore();
 
   useEffect(() => {
@@ -136,10 +137,11 @@ const Shop = () => {
             <button
               key={product.productId}
               type="button"
-              className="product-card"
-              onClick={() => handleCardClick(product)}
+              className={`product-card${isAdmin ? ' product-card--admin' : ''}`}
+              onClick={isAdmin ? undefined : () => handleCardClick(product)}
               role="listitem"
-              aria-label={`View ${product.name} – $${product.price}`}
+              aria-label={`${product.name} – $${product.price}`}
+              style={isAdmin ? { cursor: 'default', pointerEvents: 'none' } : undefined}
             >
               <div className="product-card__img-wrap">
                 <img
@@ -150,9 +152,11 @@ const Shop = () => {
                   width={300}
                   height={400}
                 />
-                <div className="product-card__quick" aria-hidden="true">
-                  <span className="product-card__quick-label">Quick view</span>
-                </div>
+                {!isAdmin && (
+                  <div className="product-card__quick" aria-hidden="true">
+                    <span className="product-card__quick-label">Quick view</span>
+                  </div>
+                )}
               </div>
 
               <div className="product-card__body">
