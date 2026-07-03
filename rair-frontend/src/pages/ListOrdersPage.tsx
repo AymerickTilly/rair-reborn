@@ -53,7 +53,9 @@ const ListOrdersPage = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, isAdmin, isCustomer, orderIdFromState]);
 
-  const filtered = orders.filter(o => {
+  const filtered = [...orders]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .filter(o => {
     const s = searchTerm.toLowerCase();
     return (
       (o.orderId.toLowerCase().includes(s) ||
@@ -205,7 +207,7 @@ const ListOrdersPage = () => {
                   Total: <strong>${grandTotal(o.products)}</strong>
                 </p>
                 <div className="order-card__actions">
-                  {isCustomer && o.status === 'PENDING' && (
+                  {isCustomer && (o.status === 'PENDING' || o.status === 'PROCESSING') && (
                     <button
                       type="button"
                       className="btn-rair btn-rair-danger"

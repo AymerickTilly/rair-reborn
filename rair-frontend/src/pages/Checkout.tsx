@@ -67,7 +67,7 @@ const Checkout = () => {
         userId,
         username: email,
         date: new Date().toISOString(),
-        status: "PENDING",
+        status: "PROCESSING",
         products: products.map(p => ({
           cartId: p.cartId,
           productId: p.id,
