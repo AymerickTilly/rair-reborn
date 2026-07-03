@@ -79,12 +79,12 @@ const ListOrdersPage = () => {
       if (!ok) throw new Error();
       const cancelled = orders.find(o => o.orderId === orderToCancel)!;
       await Promise.all(cancelled.products.map(async prod => {
-        const pd = await loadProductById(prod.id);
+        const pd = await loadProductById(prod.productId);
         const map = stockArrayToMap(pd.stock);
         const updated = pd.stock.map((item: { size: string }) =>
           item.size === prod.size ? { ...item, stockAmount: (map[prod.size] || 0) + prod.quantity } : item
         );
-        await updateProduct({ productId: prod.id, stock: updated });
+        await updateProduct({ productId: prod.productId, stock: updated });
       }));
       await refreshOrders();
     } catch { setError('Failed to cancel order.'); }
@@ -102,12 +102,12 @@ const ListOrdersPage = () => {
       if (newStatus === 'CANCELLED') {
         const upd = orders.find(o => o.orderId === orderToUpdate)!;
         await Promise.all(upd.products.map(async prod => {
-          const pd = await loadProductById(prod.id);
+          const pd = await loadProductById(prod.productId);
           const map = stockArrayToMap(pd.stock);
           const updated = pd.stock.map((item: { size: string }) =>
             item.size === prod.size ? { ...item, stockAmount: (map[prod.size] || 0) + prod.quantity } : item
           );
-          await updateProduct({ productId: prod.id, stock: updated });
+          await updateProduct({ productId: prod.productId, stock: updated });
         }));
       }
       await refreshOrders();

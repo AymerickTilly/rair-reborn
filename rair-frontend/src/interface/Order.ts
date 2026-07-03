@@ -8,7 +8,8 @@ export interface Product {
   totalPrice: number;
   cartId: string;
   name: string;
-  id: string;
+  id: number;
+  productId: string;
 }
 
 export interface Order {

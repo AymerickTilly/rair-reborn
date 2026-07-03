@@ -34,7 +34,7 @@ public class OrdersController(AppDbContext db) : ControllerBase
     {
         order.OrderId = Guid.NewGuid().ToString();
         order.Date = DateTime.UtcNow.ToString("o");
-        order.Status = "Processing";
+        order.Status = "PROCESSING";
         db.Orders.Add(order);
         await db.SaveChangesAsync();
         return Ok(order);
