@@ -12,6 +12,7 @@ import { getIdToken } from "../auth/AuthStore";
 import { API_BASE_URL } from "../api/config";
 import { useNavigate } from "react-router-dom";
 import { useToastStore } from "../stores/toastStore";
+import Spinner from "../components/Spinner";
 
 const FOLDERS = ["crew-neck", "hoodies", "knitwear", "shirts"];
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
@@ -20,6 +21,7 @@ const UpdateItemPage = () => {
   const navigate = useNavigate();
   const { addToast } = useToastStore();
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -42,6 +44,7 @@ const UpdateItemPage = () => {
   const loadAndSetProducts = async () => {
     try { setProducts(await loadProducts()); }
     catch (err) { console.error(err); }
+    finally { setProductsLoading(false); }
   };
 
   useEffect(() => { loadAndSetProducts(); }, []);
@@ -141,7 +144,12 @@ const UpdateItemPage = () => {
         </div>
 
         {/* Product grid */}
-        {filtered.length === 0 ? (
+        {productsLoading ? (
+          <div className="shop__loading">
+            <Spinner fullscreen={false} />
+            <p className="shop__loading-label">Loading products…</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <p className="page-shell__empty">No products found.</p>
         ) : (
           <div className="admin-product-grid">
