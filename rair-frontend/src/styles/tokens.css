@@ -886,7 +886,8 @@ body {
    ══════════════════════════════ */
 .admin-product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
+  justify-content: center;
   gap: 1.5rem;
 }
 .admin-product-card {
@@ -1006,7 +1007,7 @@ body {
   /* Auth: always fine at max-width 420px */
 
   /* Admin product grid: 2–3 cols on tablet */
-  .admin-product-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; }
+  .admin-product-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 280px)); justify-content: center; gap: 1.25rem; }
   /* Image picker: slightly tighter */
   .image-picker { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
 }
