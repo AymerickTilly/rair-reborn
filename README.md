@@ -1,6 +1,6 @@
 # RAIR Reborn
 
-A full rebuild of the [RAIR Clothing](https://github.com/AymerickTilly/Cloud-Computing) platform — originally a university cloud computing assignment built on AWS, now rewritten from scratch in C# and ASP.NET Core to explore a new stack.
+A full rebuild of the [RAIR Clothing](https://github.com/AymerickTilly/Cloud-Computing) platform, originally a university cloud computing assignment built on AWS, now rewritten from scratch in C# and ASP.NET Core to explore a new stack.
 
 ---
 
@@ -14,7 +14,7 @@ The original assignment brief was to design and deploy a full-stack e-commerce p
 - **S3 + CloudFront** for frontend hosting and image storage
 - **AWS CodePipeline** for CI/CD
 
-This version keeps the same concept (a clothing store), but rebuilds every layer. The motivation was not to fix something broken — the AWS version worked — but to discover C#, .NET, and a different set of services while producing something more maintainable and portable.
+This version keeps the same concept (a clothing store), but rebuilds every layer. The motivation was not to fix something broken (the AWS version worked), but to discover C#, .NET, and a different set of services while producing something more maintainable and portable.
 
 ---
 
@@ -37,7 +37,7 @@ This version keeps the same concept (a clothing store), but rebuilds every layer
 
 ## Stack
 
-### Frontend — `rair-frontend/`
+### Frontend: `rair-frontend/`
 
 | Tool | Role |
 |---|---|
@@ -47,17 +47,17 @@ This version keeps the same concept (a clothing store), but rebuilds every layer
 | React Hook Form + Zod | Form state and validation |
 | Zustand | Global auth state and toast store |
 | Supabase JS client | Auth (sign in, OAuth, password reset) |
-| Custom CSS + OKLCH tokens | Design system — no CSS framework |
+| Custom CSS + OKLCH tokens | Design system (no CSS framework) |
 | Barlow Condensed + Jost | Display and body fonts |
 | Bootstrap 5 | Modal only (quick-view, add-to-cart) |
 | Cloudinary | Image URLs served via CDN |
 
-### Backend — `RairCore/`
+### Backend: `RairCore/`
 
 | Tool | Role |
 |---|---|
 | ASP.NET Core (.NET 10) | REST API framework |
-| Entity Framework Core | ORM — C# models mapped to PostgreSQL |
+| Entity Framework Core | ORM: C# models mapped to PostgreSQL tables |
 | Supabase PostgreSQL | Relational database |
 | Supabase Auth | JWT issuance (ES256) |
 | JWT Middleware | `[Authorize]` validates Supabase tokens |
@@ -68,10 +68,10 @@ This version keeps the same concept (a clothing store), but rebuilds every layer
 
 | Service | What it hosts |
 |---|---|
-| Vercel | React frontend — auto-deploys on push to `main` |
-| Render | ASP.NET Core API — Docker container, free tier |
+| Vercel | React frontend, auto-deploys on push to `main` |
+| Render | ASP.NET Core API, Docker container, free tier |
 | Supabase | PostgreSQL database + Auth provider |
-| Cloudinary | Product images — Dynamic Folder Mode |
+| Cloudinary | Product images, Dynamic Folder Mode |
 | GitHub | Source control + OAuth provider |
 | Google Cloud | OAuth provider |
 
@@ -152,15 +152,15 @@ All routes require a valid Supabase JWT via `Authorization: Bearer <token>`.
 
 ## Key Design Decisions
 
-**Supabase instead of Cognito** — Cognito JWTs are AWS-specific and require the Amplify SDK. Supabase issues standard ES256 JWTs that any JWT library can validate, including .NET's built-in middleware. No vendor SDK required on the backend.
+**Supabase instead of Cognito:** Cognito JWTs are AWS-specific and require the Amplify SDK. Supabase issues standard ES256 JWTs that any JWT library can validate, including .NET's built-in middleware. No vendor SDK required on the backend.
 
-**Render instead of Lambda** — Lambda enforced a one-function-per-endpoint model with no shared types, no ORM, and no structured error handling. A single ASP.NET Core container on Render runs all endpoints in one process with full access to EF Core, dependency injection, and C# type safety. Cold starts are handled by Render's keep-alive.
+**Render instead of Lambda:** Lambda enforced a one-function-per-endpoint model with no shared types, no ORM, and no structured error handling. A single ASP.NET Core container on Render runs all endpoints in one process with full access to EF Core, dependency injection, and C# type safety. Cold starts are handled by Render's keep-alive.
 
-**PostgreSQL instead of DynamoDB** — Orders containing products with sizes and quantities are inherently relational. DynamoDB required denormalizing everything into flat documents. PostgreSQL enforces relationships with foreign keys and lets EF Core generate all SQL.
+**PostgreSQL instead of DynamoDB:** Orders containing products with sizes and quantities are inherently relational. DynamoDB required denormalizing everything into flat documents. PostgreSQL enforces relationships with foreign keys and lets EF Core generate all SQL.
 
-**Cloudinary instead of S3** — S3 requires IAM roles, presigned URLs, and bucket policies. Cloudinary accepts a base64 upload and returns a public CDN URL. `f_auto` and `q_auto` handle format conversion and compression automatically.
+**Cloudinary instead of S3:** S3 requires IAM roles, presigned URLs, and bucket policies. Cloudinary accepts a base64 upload and returns a public CDN URL. `f_auto` and `q_auto` handle format conversion and compression automatically.
 
-**OKLCH design tokens** — The entire color system is defined in OKLCH (`--rair-bg`, `--rair-primary`, `--rair-muted`, `--rair-border`, `--rair-ink`). OKLCH provides perceptually uniform lightness, making it easier to build accessible contrast ratios without guessing.
+**OKLCH design tokens:** The entire color system is defined in OKLCH (`--rair-bg`, `--rair-primary`, `--rair-muted`, `--rair-border`, `--rair-ink`). OKLCH provides perceptually uniform lightness, making it easier to build accessible contrast ratios without guessing.
 
 ---
 
@@ -244,8 +244,8 @@ npm run dev
 
 | Branch | Purpose |
 |---|---|
-| `main` | Production — auto-deploys to Vercel + Render |
-| `develop` | Active development — PRs merge here first |
+| `main` | Production, auto-deploys to Vercel + Render |
+| `develop` | Active development, PRs merge here first |
 
 ---
 
