@@ -45,7 +45,7 @@ const RegisterForm = () => {
   return (
     <main className="auth-page" id="main-content">
       <div className="auth-card">
-        <img src="/favicon.svg" alt="RAIR" className="auth-card__brand" />
+        <div className="auth-card__brand">RAIR</div>
         <h1 className="auth-card__title">Create account</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
