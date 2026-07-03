@@ -328,6 +328,49 @@ body {
   color: var(--rair-muted);
   margin-bottom: 3rem;
 }
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0 1rem;
+  color: var(--rair-muted);
+  font-size: 0.75rem;
+  font-family: var(--font-body);
+  letter-spacing: 0.04em;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rair-border);
+}
+.auth-oauth {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.btn-rair-oauth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--rair-border);
+  background: transparent;
+  color: var(--rair-ink);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 400;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.btn-rair-oauth:hover {
+  border-color: var(--rair-primary);
+  background: oklch(0.12 0.01 195);
+}
 .auth-card__footer {
   margin-top: 2rem;
   display: flex;
