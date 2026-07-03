@@ -117,7 +117,6 @@ const ListOrdersPage = () => {
 
   const statusClass = (status: string) => {
     const s = status.toUpperCase();
-    if (s === 'PENDING') return 'rair-badge--pending';
     if (s === 'PROCESSING') return 'rair-badge--processing';
     if (s === 'SHIPPED') return 'rair-badge--shipped';
     if (s === 'DELIVERED') return 'rair-badge--delivered';
@@ -153,7 +152,6 @@ const ListOrdersPage = () => {
             aria-label="Filter by status"
           >
             <option value="All">All statuses</option>
-            <option value="PENDING">Pending</option>
             <option value="PROCESSING">Processing</option>
             <option value="SHIPPED">Shipped</option>
             <option value="DELIVERED">Delivered</option>
@@ -207,7 +205,7 @@ const ListOrdersPage = () => {
                   Total: <strong>${grandTotal(o.products)}</strong>
                 </p>
                 <div className="order-card__actions">
-                  {isCustomer && (o.status === 'PENDING' || o.status === 'PROCESSING') && (
+                  {isCustomer && o.status === 'PROCESSING' && (
                     <button
                       type="button"
                       className="btn-rair btn-rair-danger"
