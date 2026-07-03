@@ -31,7 +31,6 @@ const AskResetCode = () => {
     return (
       <main className="auth-page" id="main-content">
         <div className="auth-card">
-          <div className="auth-card__brand">RAIR</div>
           <h1 className="auth-card__title">Check your inbox</h1>
           <p className="auth-card__subtitle">
             We sent a reset link to <strong style={{ color: 'var(--rair-ink)' }}>{getValues('email')}</strong>.
@@ -48,7 +47,6 @@ const AskResetCode = () => {
   return (
     <main className="auth-page" id="main-content">
       <div className="auth-card">
-        <div className="auth-card__brand">RAIR</div>
         <h1 className="auth-card__title">Reset password</h1>
         <p className="auth-card__subtitle">
           Enter your email and we&apos;ll send you a reset link.
