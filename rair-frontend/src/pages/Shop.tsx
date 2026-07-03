@@ -6,6 +6,7 @@ import { addToCart } from "../api/addCart";
 import { v4 as uuidv4 } from "uuid";
 import { useAuthStore } from "../auth/AuthStore";
 import { loadProductById } from "../api/loadProduct";
+import { useToastStore } from "../stores/toastStore";
 import "../components/Shopstyling.css";
 
 const Shop = () => {
@@ -16,8 +17,8 @@ const Shop = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const userId = useAuthStore((state) => state.userId);
+  const { addToast } = useToastStore();
 
   useEffect(() => {
     loadProducts().then(setProducts).catch(console.error);
@@ -27,28 +28,27 @@ const Shop = () => {
     setSelectedProduct(product);
     setSelectedSize("");
     setSelectedQuantity(1);
-    setFeedback(null);
     setShowModal(true);
   };
 
   const handleAddToCart = async () => {
     if (!selectedProduct || !selectedSize) return;
     setAdding(true);
-    setFeedback(null);
     try {
       const latestProduct = await loadProductById(selectedProduct.productId);
       const selectedStock = latestProduct.stock.find(
         (item: { size: string }) => item.size === selectedSize
       );
       if (!selectedStock) {
-        setFeedback(`Size ${selectedSize} is no longer available.`);
+        addToast(`Size ${selectedSize} is no longer available.`, 'error');
         return;
       }
       if (selectedQuantity > selectedStock.stockAmount) {
-        setFeedback(
+        addToast(
           selectedStock.stockAmount === 0
             ? `Size ${selectedSize} is out of stock.`
-            : `Only ${selectedStock.stockAmount} left in size ${selectedSize}.`
+            : `Only ${selectedStock.stockAmount} left in size ${selectedSize}.`,
+          'error'
         );
         return;
       }
@@ -62,10 +62,10 @@ const Shop = () => {
         quantity: selectedQuantity,
         imageUrl: selectedProduct.imageUrl,
       });
-      setFeedback("Added to cart.");
-      setTimeout(() => setShowModal(false), 900);
+      addToast(`${selectedProduct.name} added to cart.`, 'success');
+      setTimeout(() => setShowModal(false), 600);
     } catch {
-      setFeedback("Failed to add to cart. Please try again.");
+      addToast("Failed to add to cart. Please try again.", 'error');
     } finally {
       setAdding(false);
     }
@@ -206,15 +206,6 @@ const Shop = () => {
                 />
               </div>
 
-              {feedback && (
-                <p
-                  className="rair-error"
-                  role="alert"
-                  style={{ color: feedback.startsWith("Added") ? "var(--rair-primary)" : undefined }}
-                >
-                  {feedback}
-                </p>
-              )}
             </Modal.Body>
             <Modal.Footer>
               <button

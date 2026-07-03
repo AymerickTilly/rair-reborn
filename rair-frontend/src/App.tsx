@@ -23,6 +23,7 @@ import AddItemPage from './pages/AddItemPage';
 import UpdateItemPage from './pages/UpdateItemPage';
 import ListOrdersPage from './pages/ListOrdersPage';
 import Home from './pages/Home';
+import ToastContainer from './components/ToastContainer';
 
 const App = () => {
 
@@ -35,6 +36,7 @@ const App = () => {
 
   return (
     <>
+      <ToastContainer />
       <BrowserRouter>
         <LocationManager />
           {user && <NavigationBar />}

@@ -11,21 +11,23 @@ import { Product } from "../types/Product";
 import { getIdToken } from "../auth/AuthStore";
 import { API_BASE_URL } from "../api/config";
 import { useNavigate } from "react-router-dom";
+import { useToastStore } from "../stores/toastStore";
 
 const FOLDERS = ["crew-neck", "hoodies", "knitwear", "shirts"];
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 
 const UpdateItemPage = () => {
   const navigate = useNavigate();
+  const { addToast } = useToastStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [folder, setFolder] = useState(FOLDERS[0]);
   const [folderImages, setFolderImages] = useState<string[]>([]);
   const [loadingImages, setLoadingImages] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   const {
     register, handleSubmit, control, reset, setValue,
@@ -80,30 +82,37 @@ const UpdateItemPage = () => {
     reset();
     setSelectedImageUrl(null);
     setFolderImages([]);
-    setFeedback(null);
   };
 
   const onSubmit = async (data: TUpdateItemSchema) => {
     if (!selectedProduct || !selectedImageUrl) {
-      setFeedback("Please select an image.");
+      addToast("Please select an image.", 'error');
       return;
     }
-    setFeedback(null);
     const result = await updateProduct({ productId: selectedProduct.productId, ...data, imageUrl: selectedImageUrl });
-    if (!result) { setFeedback("Failed to update product."); return; }
-    setFeedback("Updated successfully.");
+    if (!result) { addToast("Failed to update product.", 'error'); return; }
+    addToast("Product updated successfully.", 'success');
     setTimeout(() => { handleClose(); loadAndSetProducts(); }, 700);
   };
 
   const handleDelete = async (productId: string) => {
-    if (!window.confirm("Delete this product permanently?")) return;
+    setConfirmDeleteId(productId);
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return;
     try {
-      const p = products.find(x => x.productId === productId);
+      const p = products.find(x => x.productId === confirmDeleteId);
       if (!p) return;
       const ok = await deleteProduct(p.productId);
       if (!ok) throw new Error();
+      addToast("Product deleted.", 'info');
       await loadAndSetProducts();
-    } catch { alert("Failed to delete product."); }
+    } catch {
+      addToast("Failed to delete product.", 'error');
+    } finally {
+      setConfirmDeleteId(null);
+    }
   };
 
   const filtered = products.filter(p =>
@@ -148,6 +157,26 @@ const UpdateItemPage = () => {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation */}
+      <Modal show={!!confirmDeleteId} onHide={() => setConfirmDeleteId(null)} centered dialogClassName="rair-modal">
+        <Modal.Header closeButton>
+          <Modal.Title>Delete product</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p style={{ color: 'var(--rair-ink)', marginBottom: '1.5rem' }}>
+            This will permanently remove the product. This cannot be undone.
+          </p>
+          <div className="admin-form__actions">
+            <button type="button" className="btn-rair btn-rair-danger" style={{ flex: 1 }} onClick={confirmDelete}>
+              Delete permanently
+            </button>
+            <button type="button" className="btn-rair btn-rair-ghost" onClick={() => setConfirmDeleteId(null)}>
+              Cancel
+            </button>
+          </div>
+        </Modal.Body>
+      </Modal>
 
       {/* Edit modal */}
       <Modal show={showModal} onHide={handleClose} size="lg" centered dialogClassName="rair-modal">
@@ -264,16 +293,6 @@ const UpdateItemPage = () => {
                 <p className="rair-label">Selected</p>
                 <img src={selectedImageUrl} alt="Selected" className="image-picker__preview-img" />
               </div>
-            )}
-
-            {feedback && (
-              <p
-                className="rair-error"
-                role="alert"
-                style={{ color: feedback.startsWith("Updated") ? 'var(--rair-primary)' : undefined }}
-              >
-                {feedback}
-              </p>
             )}
 
             <div className="admin-form__actions">

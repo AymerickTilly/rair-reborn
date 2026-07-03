@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from "react-router";
 import { getIdToken } from "../auth/AuthStore";
 import { API_BASE_URL } from "../api/config";
+import { useToastStore } from "../stores/toastStore";
 
 const FOLDERS = ["crew-neck", "hoodies", "knitwear", "shirts"];
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
@@ -16,8 +17,8 @@ const AddItemPage = () => {
   const [folder, setFolder] = React.useState(FOLDERS[0]);
   const [folderImages, setFolderImages] = React.useState<string[]>([]);
   const [loadingImages, setLoadingImages] = React.useState(false);
-  const [feedback, setFeedback] = React.useState<string | null>(null);
   const navigate = useNavigate();
+  const { addToast } = useToastStore();
 
   const loadImages = async (f: string) => {
     setLoadingImages(true);
@@ -52,18 +53,17 @@ const AddItemPage = () => {
 
   const onSubmit = async (data: TAddItemSchema) => {
     if (!selectedImageUrl) {
-      setFeedback("Please select an image from Cloudinary.");
+      addToast("Please select an image from Cloudinary.", 'error');
       return;
     }
-    setFeedback(null);
     try {
       await addProduct({ productId: uuidv4(), ...data, imageUrl: selectedImageUrl });
-      setFeedback("Product added successfully.");
+      addToast("Product added successfully.", 'success');
       reset();
       setSelectedImageUrl(null);
       setTimeout(() => navigate("/admin"), 900);
     } catch {
-      setFeedback("Failed to add product. Please try again.");
+      addToast("Failed to add product. Please try again.", 'error');
     }
   };
 
@@ -192,16 +192,6 @@ const AddItemPage = () => {
               <p className="rair-label">Selected</p>
               <img src={selectedImageUrl} alt="Selected product" className="image-picker__preview-img" />
             </div>
-          )}
-
-          {feedback && (
-            <p
-              className="rair-error"
-              role="alert"
-              style={{ color: feedback.startsWith("Product added") ? 'var(--rair-primary)' : undefined }}
-            >
-              {feedback}
-            </p>
           )}
 
           <div className="admin-form__actions">

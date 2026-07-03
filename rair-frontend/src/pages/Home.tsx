@@ -20,7 +20,19 @@ const Home = () => {
       .finally(() => setProductsLoading(false));
   }, []);
 
-  if (loading || productsLoading) return <Spinner />;
+  if (loading || productsLoading) {
+    return (
+      <div className="home" id="main-content">
+        <div className="hero">
+          <div className="hero__inner">
+            <span className="hero__eyebrow">New Collection</span>
+            <h1 className="hero__brand">RAIR</h1>
+            <Spinner fullscreen={false} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const categories = Array.from(new Set(products.map((p) => p.category)));
 
