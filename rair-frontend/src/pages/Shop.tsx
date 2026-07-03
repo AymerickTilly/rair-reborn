@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { loadProducts } from "../api/loadProducts";
+import Spinner from "../components/Spinner";
 import { Modal } from "react-bootstrap";
 import { Product } from "../types/Product";
 import { addToCart } from "../api/addCart";
@@ -18,6 +19,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const Shop = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -30,7 +32,10 @@ const Shop = () => {
   const { addToast } = useToastStore();
 
   useEffect(() => {
-    loadProducts().then(setProducts).catch(console.error);
+    loadProducts()
+      .then(setProducts)
+      .catch(console.error)
+      .finally(() => setProductsLoading(false));
   }, []);
 
   const handleCardClick = (product: Product) => {
@@ -105,29 +110,36 @@ const Shop = () => {
           </div>
         </header>
 
-        {categories.length > 0 && (
-          <nav className="shop__tabs" aria-label="Filter by category">
-            <button
-              type="button"
-              className={`shop-tab${activeCategory === "" ? " is-active" : ""}`}
-              onClick={() => setActiveCategory("")}
-              aria-pressed={activeCategory === ""}
-            >
-              All
-            </button>
-            {categories.map(cat => (
-              <button
-                key={cat}
-                type="button"
-                className={`shop-tab${activeCategory === cat ? " is-active" : ""}`}
-                onClick={() => setActiveCategory(cat)}
-                aria-pressed={activeCategory === cat}
-              >
-                {CATEGORY_LABELS[cat] ?? cat}
-              </button>
-            ))}
-          </nav>
-        )}
+        {productsLoading ? (
+          <div className="shop__loading">
+            <Spinner fullscreen={false} />
+            <p className="shop__loading-label">Loading products…</p>
+          </div>
+        ) : (
+          <>
+            {categories.length > 0 && (
+              <nav className="shop__tabs" aria-label="Filter by category">
+                <button
+                  type="button"
+                  className={`shop-tab${activeCategory === "" ? " is-active" : ""}`}
+                  onClick={() => setActiveCategory("")}
+                  aria-pressed={activeCategory === ""}
+                >
+                  All
+                </button>
+                {categories.map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    className={`shop-tab${activeCategory === cat ? " is-active" : ""}`}
+                    onClick={() => setActiveCategory(cat)}
+                    aria-pressed={activeCategory === cat}
+                  >
+                    {CATEGORY_LABELS[cat] ?? cat}
+                  </button>
+                ))}
+              </nav>
+            )}
 
         <div className="shop__grid" role="list">
           {filtered.length === 0 && (
@@ -181,6 +193,8 @@ const Shop = () => {
             </button>
           ))}
         </div>
+          </>
+        )}
       </div>
 
       {/* Product modal */}
