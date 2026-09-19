@@ -260,7 +260,7 @@
 }
 
 /* ── Modal ── */
-.shop-modal .modal-dialog { max-width: 540px; }
+.shop-modal .rair-modal__panel { max-width: 540px; }
 
 .shop-modal__img {
   width: 100%;
@@ -322,7 +322,7 @@
   .shop { padding-top: 5.5rem; }
   .shop__inner { padding: 0 2rem; }
   .shop__grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-  .shop-modal .modal-dialog { max-width: 480px; }
+  .shop-modal .rair-modal__panel { max-width: 480px; }
 }
 
 /* ═══════════════════════════════════════
@@ -363,7 +363,7 @@
   .shop-tab { padding: 0.5rem 0.875rem; font-size: 0.6875rem; }
 
   /* Modal: nearly full-screen on phone */
-  .shop-modal .modal-dialog { max-width: calc(100vw - 1rem); margin: 0.5rem auto; }
+  .shop-modal .rair-modal__panel { max-width: calc(100vw - 1rem); }
   .shop-modal__img { height: 200px; }
   .shop-modal__name { font-size: 1.375rem; }
 }

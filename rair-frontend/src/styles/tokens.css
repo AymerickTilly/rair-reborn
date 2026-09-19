@@ -393,35 +393,6 @@ body {
 }
 
 /* ══════════════════════════════
-   MODAL OVERRIDES
-   ══════════════════════════════ */
-.rair-modal .modal-content {
-  background: var(--rair-surface) !important;
-  border: 1px solid var(--rair-border) !important;
-  border-radius: 0 !important;
-  color: var(--rair-ink) !important;
-}
-.rair-modal .modal-header {
-  border-bottom: 1px solid var(--rair-border) !important;
-  padding: 1.25rem 1.5rem;
-  background: transparent !important;
-}
-.rair-modal .modal-footer {
-  border-top: 1px solid var(--rair-border) !important;
-  background: transparent !important;
-}
-.rair-modal .modal-body { background: transparent !important; }
-.rair-modal .btn-close { filter: invert(1) brightness(0.6); }
-.rair-modal .modal-title {
-  font-family: var(--font-display) !important;
-  font-weight: 700 !important;
-  font-size: 1.5rem !important;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--rair-ink) !important;
-}
-
-/* ══════════════════════════════
    AUTH BRAND MARK
    ══════════════════════════════ */
 .auth-card__brand {
@@ -1150,9 +1121,6 @@ body {
   .order-card__actions .rair-select { width: 100% !important; }
   .order-card__actions .btn-rair { width: 100%; justify-content: center; }
   .order-card__meta { flex-direction: column; gap: 0.25rem; }
-
-  /* ── MODALS: full-width on phone ── */
-  .rair-modal .modal-dialog { margin: 0.5rem; max-width: calc(100vw - 1rem); }
 
   /* ── ADMIN ── */
   .admin-product-grid { grid-template-columns: repeat(2, 1fr); gap: 0.875rem; }

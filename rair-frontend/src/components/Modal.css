@@ -1,0 +1,109 @@
+/* ══════════════════════════════
+   MODAL (native <dialog>)
+   ══════════════════════════════ */
+
+/* The dialog itself is a full-viewport, transparent scroll container. The frame centres the panel and
+   catches clicks on the backdrop, so a tall form scrolls the way the page-level modal used to. */
+.rair-modal {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.rair-modal[open] { animation: rair-modal-in 0.18s var(--ease-out, ease-out) both; }
+.rair-modal::backdrop { background: rgb(0 0 0 / 0.6); }
+
+/* Stop the page behind from scrolling while a modal is open */
+body:has(.rair-modal[open]) { overflow: hidden; }
+
+.rair-modal__frame {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.75rem 1rem;
+}
+
+.rair-modal__panel {
+  width: 100%;
+  max-width: 500px;
+  background: var(--rair-surface);
+  border: 1px solid var(--rair-border);
+  color: var(--rair-ink);
+  outline: none;
+}
+.rair-modal--lg .rair-modal__panel { max-width: 800px; }
+
+.rair-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--rair-border);
+}
+
+.rair-modal__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rair-ink);
+}
+
+/* 44px hit area, pulled into the header padding so the icon stays aligned */
+.rair-modal__close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -0.75rem -0.75rem -0.75rem auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--rair-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.rair-modal__close:hover { color: var(--rair-ink); }
+.rair-modal__close:focus-visible { outline: 2px solid var(--rair-primary); outline-offset: -4px; }
+
+.rair-modal__body { padding: 1rem; }
+
+.rair-modal__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-top: 1px solid var(--rair-border);
+}
+
+@keyframes rair-modal-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Phone: nearly full width */
+@media (max-width: 480px) {
+  .rair-modal__frame { padding: 0.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rair-modal[open] { animation: none; }
+}

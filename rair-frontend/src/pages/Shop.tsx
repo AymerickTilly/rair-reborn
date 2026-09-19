@@ -2,7 +2,7 @@ import { cldImage } from '../lib/cloudinary';
 import { useEffect, useState } from "react";
 import { loadProducts } from "../api/loadProducts";
 import Spinner from "../components/Spinner";
-import { Modal } from "react-bootstrap";
+import Modal from '../components/Modal';
 import { Product } from "../types/Product";
 import { addToCart } from "../api/addCart";
 import { v4 as uuidv4 } from "uuid";
@@ -203,8 +203,7 @@ const Shop = () => {
       <Modal
         show={showModal}
         onHide={() => setShowModal(false)}
-        centered
-        dialogClassName="shop-modal rair-modal"
+        dialogClassName="shop-modal" ariaLabel={selectedProduct?.name}
       >
         {selectedProduct && (
           <>

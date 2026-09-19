@@ -1,7 +1,7 @@
 import { cldImage } from '../lib/cloudinary';
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { Modal } from "react-bootstrap";
+import Modal from '../components/Modal';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { updateItemSchema, TUpdateItemSchema } from "../schemas/TupdateItemSchemas";
 import { loadProducts } from "../api/loadProducts";
@@ -167,7 +167,7 @@ const UpdateItemPage = () => {
       </div>
 
       {/* Delete confirmation */}
-      <Modal show={!!confirmDeleteId} onHide={() => setConfirmDeleteId(null)} centered dialogClassName="rair-modal">
+      <Modal show={!!confirmDeleteId} onHide={() => setConfirmDeleteId(null)}>
         <Modal.Header closeButton>
           <Modal.Title>Delete product</Modal.Title>
         </Modal.Header>
@@ -187,7 +187,7 @@ const UpdateItemPage = () => {
       </Modal>
 
       {/* Edit modal */}
-      <Modal show={showModal} onHide={handleClose} size="lg" centered dialogClassName="rair-modal">
+      <Modal show={showModal} onHide={handleClose} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Edit product</Modal.Title>
         </Modal.Header>

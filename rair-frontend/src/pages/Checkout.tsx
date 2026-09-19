@@ -1,7 +1,7 @@
 import { cldImage } from '../lib/cloudinary';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Modal } from 'react-bootstrap';
+import Modal from '../components/Modal';
 import { useAuthStore } from '../auth/AuthStore';
 import { loadUserById } from '../api/loadUser';
 import { User } from '../types/User';
@@ -150,7 +150,7 @@ const Checkout = () => {
         </button>
       </div>
 
-      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered dialogClassName="rair-modal">
+      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm order</Modal.Title>
         </Modal.Header>

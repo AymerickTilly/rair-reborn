@@ -2,7 +2,7 @@ import { cldImage } from '../lib/cloudinary';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '../auth/AuthStore';
-import { Modal } from 'react-bootstrap';
+import Modal from '../components/Modal';
 import Spinner from '../components/Spinner';
 import { loadOrders } from '../api/loadOrders';
 import { updateOrder } from '../api/update_order';
@@ -225,7 +225,7 @@ const ListOrdersPage = () => {
       </div>
 
       {/* Cancel modal */}
-      <Modal show={showCancelModal} onHide={() => setShowCancelModal(false)} centered dialogClassName="rair-modal">
+      <Modal show={showCancelModal} onHide={() => setShowCancelModal(false)}>
         <Modal.Header closeButton><Modal.Title>Cancel order</Modal.Title></Modal.Header>
         <Modal.Body>
           <p style={{ fontWeight: 300, color: 'var(--rair-muted)' }}>
@@ -240,7 +240,7 @@ const ListOrdersPage = () => {
       </Modal>
 
       {/* Update modal */}
-      <Modal show={showUpdateModal} onHide={() => setShowUpdateModal(false)} centered dialogClassName="rair-modal">
+      <Modal show={showUpdateModal} onHide={() => setShowUpdateModal(false)}>
         <Modal.Header closeButton><Modal.Title>Update status</Modal.Title></Modal.Header>
         <Modal.Body>
           <p style={{ fontWeight: 300, color: 'var(--rair-muted)' }}>
