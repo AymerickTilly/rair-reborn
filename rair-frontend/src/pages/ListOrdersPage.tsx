@@ -179,7 +179,7 @@ const ListOrdersPage = () => {
                   Total: <strong>${grandTotal(o.products)}</strong>
                 </p>
                 <div className="order-card__actions">
-                  {isCustomer && ['PROCESSING', 'PENDING'].includes(o.status.toUpperCase()) && (
+                  {isCustomer && o.status.toUpperCase() === 'PROCESSING' && (
                     <button
                       type="button"
                       className="btn-rair btn-rair-danger"
