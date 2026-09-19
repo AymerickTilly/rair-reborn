@@ -5,11 +5,8 @@ import { useAuthStore } from '../auth/AuthStore';
 import { loadUserById } from '../api/loadUser';
 import { User } from '../types/User';
 import { ProductItem } from '../interface/ProductItem';
-import { v4 as uuidv4 } from 'uuid';
 import { addOrder } from '../api/addOrder';
-import { deleteCart } from '../api/deleteCart';
-import { updateProduct } from '../api/updateProduct';
-import { loadProductById } from '../api/loadProduct';
+import { useToastStore } from '../stores/toastStore';
 
 interface CheckoutLocationState {
   selectedItems: ProductItem[];
@@ -23,7 +20,8 @@ const Checkout = () => {
   const [selectedBank, setSelectedBank] = useState('');
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [placing, setPlacing] = useState(false);
-  const { userId, email } = useAuthStore();
+  const { userId } = useAuthStore();
+  const { addToast } = useToastStore();
 
   useEffect(() => {
     if (!state || !Array.isArray(state.selectedItems)) {
@@ -50,73 +48,24 @@ const Checkout = () => {
   const grandTotal = () =>
     products.reduce((s, p) => s + p.unitPrice * p.quantity, 0).toFixed(2);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function stockArrayToMap(stockArray: any[]) {
-    return stockArray.reduce((acc, item) => {
-      acc[item.size] = item.stockAmount;
-      return acc;
-    }, {} as Record<string, number>);
-  }
-
   const confirmPayment = async () => {
     if (!userId) return;
     setPlacing(true);
     try {
-      const orderData = {
-        orderId: uuidv4(),
-        userId,
-        username: email,
-        date: new Date().toISOString(),
-        status: "PROCESSING",
+      // The API checks and decrements stock, prices the items and clears them from the cart.
+      const order = await addOrder({
+        shippingAddress: address,
+        paymentMethod: selectedBank,
         products: products.map(p => ({
           cartId: p.cartId,
           productId: p.id,
-          name: p.name,
-          image: p.image,
-          quantity: p.quantity,
           size: p.size[0],
-          unitPrice: p.unitPrice,
-          totalPrice: p.unitPrice * p.quantity,
+          quantity: p.quantity,
         })),
-        totalAmount: parseFloat(grandTotal()),
-        shippingAddress: address,
-        paymentMethod: selectedBank,
-      };
-
-      const response = await addOrder(orderData);
-      if (response) {
-        await Promise.all(
-          orderData.products.map(async product => {
-            try {
-              await deleteCart({
-                userId: orderData.userId, cartId: product.cartId,
-                productId: '', name: '', price: 0, size: '', quantity: 0, imageUrl: '',
-              });
-              const productData = await loadProductById(product.productId);
-              if (!productData?.stock) return false;
-              const stockMap = stockArrayToMap(productData.stock);
-              if (typeof stockMap[product.size] !== 'number') return false;
-              const newStock = stockMap[product.size] - product.quantity;
-              if (newStock < 0) return false;
-              const updatedStockArray = productData.stock.map((item: { size: string }) =>
-                item.size === product.size ? { ...item, stockAmount: newStock } : item
-              );
-              return await updateProduct({
-                productId: product.productId,
-                name: productData.name,
-                description: productData.description,
-                category: productData.category,
-                imageUrl: productData.imageUrl,
-                price: productData.price,
-                stock: updatedStockArray,
-              });
-            } catch { return false; }
-          })
-        );
-        navigate('/listOrdersPage', { state: { orderId: response.orderId } });
-      }
+      });
+      navigate('/listOrdersPage', { state: { orderId: order.orderId } });
     } catch (err) {
-      console.error('Order error:', err);
+      addToast(err instanceof Error ? err.message : 'Could not place the order. Please try again.', 'error');
     } finally {
       setPlacing(false);
       setShowConfirmModal(false);

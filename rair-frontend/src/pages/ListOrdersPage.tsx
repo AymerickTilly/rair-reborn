@@ -4,9 +4,7 @@ import { useAuthStore } from '../auth/AuthStore';
 import { Modal } from 'react-bootstrap';
 import Spinner from '../components/Spinner';
 import { loadOrders } from '../api/loadOrders';
-import { loadProductById } from '../api/loadProduct';
 import { updateOrder } from '../api/update_order';
-import { updateProduct } from '../api/updateProduct';
 import { Order, Product } from '../interface/Order';
 
 const ListOrdersPage = () => {
@@ -27,12 +25,6 @@ const ListOrdersPage = () => {
   const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const stockArrayToMap = (stock: { size: string; stockAmount: number }[]) =>
-    stock.reduce<Record<string, number>>((acc, item) => {
-      acc[item.size] = item.stockAmount;
-      return acc;
-    }, {});
 
   const refreshOrders = async () => {
     if (!userId) return;
@@ -72,28 +64,12 @@ const ListOrdersPage = () => {
 
   const handleCancelClick = (id: string) => { setOrderToCancel(id); setShowCancelModal(true); };
 
+  // The API puts the items back in stock when an order is cancelled.
   const confirmCancel = async () => {
     if (!orderToCancel) return;
     try {
       const ok = await updateOrder({ orderId: orderToCancel, status: 'CANCELLED' });
       if (!ok) throw new Error();
-      const cancelled = orders.find(o => o.orderId === orderToCancel)!;
-      await Promise.all(cancelled.products.map(async prod => {
-        const pd = await loadProductById(prod.productId);
-        const map = stockArrayToMap(pd.stock);
-        const updated = pd.stock.map((item: { size: string }) =>
-          item.size === prod.size ? { ...item, stockAmount: (map[prod.size] || 0) + prod.quantity } : item
-        );
-        await updateProduct({
-          productId: prod.productId,
-          name: pd.name,
-          description: pd.description,
-          category: pd.category,
-          imageUrl: pd.imageUrl,
-          price: pd.price,
-          stock: updated,
-        });
-      }));
       await refreshOrders();
     } catch { setError('Failed to cancel order.'); }
     finally { setShowCancelModal(false); setOrderToCancel(null); }
@@ -107,25 +83,6 @@ const ListOrdersPage = () => {
     try {
       const ok = await updateOrder({ orderId: orderToUpdate, status: newStatus });
       if (!ok) throw new Error();
-      if (newStatus === 'CANCELLED') {
-        const upd = orders.find(o => o.orderId === orderToUpdate)!;
-        await Promise.all(upd.products.map(async prod => {
-          const pd = await loadProductById(prod.productId);
-          const map = stockArrayToMap(pd.stock);
-          const updated = pd.stock.map((item: { size: string }) =>
-            item.size === prod.size ? { ...item, stockAmount: (map[prod.size] || 0) + prod.quantity } : item
-          );
-          await updateProduct({
-            productId: prod.productId,
-            name: pd.name,
-            description: pd.description,
-            category: pd.category,
-            imageUrl: pd.imageUrl,
-            price: pd.price,
-            stock: updated,
-          });
-        }));
-      }
       await refreshOrders();
     } catch { setError('Failed to update order.'); }
     finally { setShowUpdateModal(false); setOrderToUpdate(null); }

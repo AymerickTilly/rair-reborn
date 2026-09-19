@@ -1,33 +1,32 @@
 import { getIdToken } from "../auth/AuthStore";
 import { API_BASE_URL } from "./config";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function addOrder(orderData: any): Promise<any | null> {
-  try {
-    const idToken = await getIdToken();
-    if (!idToken) {
-      console.error("No ID token available");
-      return null;
-    }
+// The API prices the order, checks and decrements stock, and empties the ordered cart items itself,
+// so the client only sends what the customer wants.
+export interface CreateOrderPayload {
+  shippingAddress: string;
+  paymentMethod: string;
+  products: { cartId: string; productId: string; size: string; quantity: number }[];
+}
 
-    const res = await fetch(`${API_BASE_URL}/order`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify(orderData),
-    });
+// Throws an Error carrying the API's message (e.g. "Only 2 left of X in size M.") so the page can show it.
+export async function addOrder(orderData: CreateOrderPayload): Promise<{ orderId: string }> {
+  const idToken = await getIdToken();
+  if (!idToken) throw new Error("You are signed out. Please sign in again.");
 
-    if (!res.ok) {
-      console.error("Order creation failed addOrder.ts:", res.status, res.statusText);
-      return null;
-    }
+  const res = await fetch(`${API_BASE_URL}/order`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${idToken}`,
+    },
+    body: JSON.stringify(orderData),
+  });
 
-    const data = await res.json();
-    return data;
-  } catch (err) {
-    console.error("Error creating order addOrder.ts:", err);
-    return null;
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error ?? "Could not place the order. Please try again.");
   }
+
+  return res.json();
 }
