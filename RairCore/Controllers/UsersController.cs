@@ -16,7 +16,7 @@ public class UsersController(AppDbContext db) : ControllerBase
     [Authorize(Policy = CurrentUser.AdminPolicy)]
     public async Task<IActionResult> GetAll()
     {
-        var users = await db.Users.ToListAsync();
+        var users = await db.Users.AsNoTracking().ToListAsync();
         return Ok(users);
     }
 
@@ -26,7 +26,7 @@ public class UsersController(AppDbContext db) : ControllerBase
     {
         if (userId != User.Id() && !User.IsAdmin()) return Forbid();
 
-        var user = await db.Users.FindAsync(userId);
+        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId);
         if (user is null) return NotFound();
         return Ok(user);
     }

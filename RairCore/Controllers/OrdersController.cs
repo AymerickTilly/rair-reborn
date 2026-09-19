@@ -18,7 +18,7 @@ public class OrdersController(AppDbContext db) : ControllerBase
     [HttpGet("orders")]
     public async Task<IActionResult> GetAll()
     {
-        IQueryable<Order> query = db.Orders.Include(o => o.Products);
+        IQueryable<Order> query = db.Orders.AsNoTracking().Include(o => o.Products);
         if (!User.IsAdmin())
         {
             var userId = User.Id();
@@ -32,7 +32,7 @@ public class OrdersController(AppDbContext db) : ControllerBase
     [HttpGet("order")]
     public async Task<IActionResult> GetById([FromQuery] string orderId)
     {
-        var order = await db.Orders.Include(o => o.Products)
+        var order = await db.Orders.AsNoTracking().Include(o => o.Products)
             .FirstOrDefaultAsync(o => o.OrderId == orderId);
 
         // NotFound (not Forbid) for someone else's order so its existence isn't revealed

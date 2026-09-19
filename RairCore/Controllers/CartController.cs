@@ -18,7 +18,7 @@ public class CartController(AppDbContext db) : ControllerBase
     {
         if (userId != User.Id()) return Forbid();
 
-        var items = await db.Carts.Where(c => c.UserId == userId).ToListAsync();
+        var items = await db.Carts.AsNoTracking().Where(c => c.UserId == userId).ToListAsync();
         return Ok(items);
     }
 

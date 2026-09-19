@@ -18,8 +18,9 @@ public class ProductsController(AppDbContext db) : ControllerBase
     [HttpGet("products")]
     public async Task<IActionResult> GetAll()
     {
-        // Include() is like a SQL JOIN — loads the Stock list with each product
-        var products = await db.Products.Include(p => p.Stock).ToListAsync();
+        // Include() is like a SQL JOIN — loads the Stock list with each product.
+        // AsNoTracking() skips change tracking, which this read-only query doesn't need.
+        var products = await db.Products.AsNoTracking().Include(p => p.Stock).ToListAsync();
         return Ok(products);
     }
 
@@ -27,7 +28,7 @@ public class ProductsController(AppDbContext db) : ControllerBase
     [HttpGet("product")]
     public async Task<IActionResult> GetById([FromQuery] string productId)
     {
-        var product = await db.Products.Include(p => p.Stock)
+        var product = await db.Products.AsNoTracking().Include(p => p.Stock)
             .FirstOrDefaultAsync(p => p.ProductId == productId);
 
         // NotFound() returns HTTP 404 — same behaviour your Lambda had
