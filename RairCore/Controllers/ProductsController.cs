@@ -41,6 +41,8 @@ public class ProductsController(AppDbContext db) : ControllerBase
     [Authorize(Policy = CurrentUser.AdminPolicy)]
     public async Task<IActionResult> Create([FromBody] Product product)
     {
+        if (HasDuplicateSizes(product)) return BadRequest(new { error = "Each size can only be listed once." });
+
         product.ProductId = Guid.NewGuid().ToString();
         db.Products.Add(product);
         await db.SaveChangesAsync();
@@ -52,6 +54,8 @@ public class ProductsController(AppDbContext db) : ControllerBase
     [Authorize(Policy = CurrentUser.AdminPolicy)]
     public async Task<IActionResult> Update([FromBody] Product product)
     {
+        if (HasDuplicateSizes(product)) return BadRequest(new { error = "Each size can only be listed once." });
+
         var existing = await db.Products.Include(p => p.Stock)
             .FirstOrDefaultAsync(p => p.ProductId == product.ProductId);
         if (existing is null) return NotFound();
@@ -83,4 +87,9 @@ public class ProductsController(AppDbContext db) : ControllerBase
         await db.SaveChangesAsync();
         return Ok(new { message = "Product deleted" });
     }
+
+    // Stock is looked up by (product, size) when orders are placed and cancelled, so a size listed twice
+    // would be counted twice.
+    private static bool HasDuplicateSizes(Product product) =>
+        product.Stock.GroupBy(s => s.Size).Any(g => g.Count() > 1);
 }

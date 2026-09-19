@@ -57,7 +57,12 @@ const AddItemPage = () => {
       return;
     }
     try {
-      await addProduct({ productId: uuidv4(), ...data, imageUrl: selectedImageUrl });
+      const result = await addProduct({ productId: uuidv4(), ...data, imageUrl: selectedImageUrl });
+      if (!result) {
+        // addProduct returns null on any failure (for example a size listed twice)
+        addToast("Failed to add product. Check the form (each size can only be listed once) and try again.", 'error');
+        return;
+      }
       addToast("Product added successfully.", 'success');
       reset();
       setSelectedImageUrl(null);
