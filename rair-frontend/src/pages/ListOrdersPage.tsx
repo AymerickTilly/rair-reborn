@@ -201,6 +201,8 @@ const ListOrdersPage = () => {
                           }))
                         }
                         aria-label="New status"
+                        disabled={o.status.toUpperCase() === 'CANCELLED'}
+                        title={o.status.toUpperCase() === 'CANCELLED' ? "A cancelled order can't be reopened" : undefined}
                       >
                         <option value="PROCESSING">Processing</option>
                         <option value="SHIPPED">Shipped</option>
@@ -211,7 +213,11 @@ const ListOrdersPage = () => {
                         type="button"
                         className="btn-rair btn-rair-primary"
                         onClick={() => handleUpdateClick(o.orderId)}
-                        disabled={!statusUpdates[o.orderId] || statusUpdates[o.orderId] === o.status}
+                        disabled={
+                          o.status.toUpperCase() === 'CANCELLED' ||
+                          !statusUpdates[o.orderId] ||
+                          statusUpdates[o.orderId] === o.status
+                        }
                       >
                         Update
                       </button>
