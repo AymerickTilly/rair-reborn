@@ -5,7 +5,6 @@ import Spinner from "../components/Spinner";
 import Modal from '../components/Modal';
 import { Product } from "../types/Product";
 import { addToCart } from "../api/addCart";
-import { v4 as uuidv4 } from "uuid";
 import { useAuthStore } from "../auth/AuthStore";
 import { loadProductById } from "../api/loadProduct";
 import { useToastStore } from "../stores/toastStore";
@@ -69,7 +68,7 @@ const Shop = () => {
       }
       await addToCart({
         userId,
-        cartId: uuidv4(),
+        cartId: crypto.randomUUID(),
         productId: selectedProduct.productId,
         name: selectedProduct.name,
         price: selectedProduct.price,

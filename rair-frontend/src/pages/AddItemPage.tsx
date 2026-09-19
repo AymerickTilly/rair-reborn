@@ -4,7 +4,6 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { addItemSchema, TAddItemSchema } from "../schemas/TaddItemSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addProduct } from "../api/addProduct";
-import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from "react-router";
 import { getIdToken } from "../auth/AuthStore";
 import { API_BASE_URL } from "../api/config";
@@ -58,7 +57,7 @@ const AddItemPage = () => {
       return;
     }
     try {
-      const result = await addProduct({ productId: uuidv4(), ...data, imageUrl: selectedImageUrl });
+      const result = await addProduct({ productId: crypto.randomUUID(), ...data, imageUrl: selectedImageUrl });
       if (!result) {
         // addProduct returns null on any failure (for example a size listed twice)
         addToast("Failed to add product. Check the form (each size can only be listed once) and try again.", 'error');
