@@ -21,6 +21,9 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// Brotli/gzip for JSON responses (the product and order lists are the large ones)
+builder.Services.AddResponseCompression(options => options.EnableForHttps = true);
+
 // Register the database — reads connection string from appsettings.json
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -91,6 +94,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
+app.UseResponseCompression();
 app.UseCors("Frontend");
 app.UseAuthentication();   // 1. Parse and validate the JWT
 app.UseAuthorization();    // 2. Check if the route requires auth
