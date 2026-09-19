@@ -96,4 +96,8 @@ app.UseAuthentication();   // 1. Parse and validate the JWT
 app.UseAuthorization();    // 2. Check if the route requires auth
 app.MapControllers();      // 3. Route to the right controller action
 
+// Unauthenticated and does no work: lets the frontend (or an uptime pinger) wake a sleeping
+// free-tier instance before the first real request.
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+
 app.Run();

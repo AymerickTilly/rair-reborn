@@ -48,23 +48,18 @@ public class ProductsController(AppDbContext db) : ControllerBase
 
     // PUT /product
     [HttpPut("product")]
+    [Authorize(Policy = CurrentUser.AdminPolicy)]
     public async Task<IActionResult> Update([FromBody] Product product)
     {
         var existing = await db.Products.Include(p => p.Stock)
             .FirstOrDefaultAsync(p => p.ProductId == product.ProductId);
         if (existing is null) return NotFound();
 
-        // Checkout and order cancellation still adjust stock from the customer's browser, so customers
-        // may change stock through this endpoint. Only admins may change the product details or price.
-        // TODO: once stock moves server-side into the order endpoints, make this admin-only.
-        if (User.IsAdmin())
-        {
-            existing.Name = product.Name;
-            existing.Description = product.Description;
-            existing.Category = product.Category;
-            existing.ImageUrl = product.ImageUrl;
-            existing.Price = product.Price;
-        }
+        existing.Name = product.Name;
+        existing.Description = product.Description;
+        existing.Category = product.Category;
+        existing.ImageUrl = product.ImageUrl;
+        existing.Price = product.Price;
 
         // Replace stock entries
         db.StockItems.RemoveRange(existing.Stock);
