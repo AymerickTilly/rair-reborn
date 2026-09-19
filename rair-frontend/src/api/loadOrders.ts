@@ -3,7 +3,6 @@ import { API_BASE_URL } from "./config";
 
 export async function loadOrders() {
   const idToken = await getIdToken();
-  console.log("ID Token:", idToken);
 
   if (!idToken) {
     console.error("No ID token available");

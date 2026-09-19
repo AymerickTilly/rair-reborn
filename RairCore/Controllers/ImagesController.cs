@@ -2,11 +2,13 @@ using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RairCore.Auth;
 
 namespace RairCore.Controllers;
 
+// Only the admin pages (add/update product) use these endpoints.
 [ApiController]
-[Authorize]
+[Authorize(Policy = CurrentUser.AdminPolicy)]
 public class ImagesController(Cloudinary cloudinary) : ControllerBase
 {
     // POST /image

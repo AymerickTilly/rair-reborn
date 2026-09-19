@@ -6,14 +6,12 @@ import { User } from "../types/User";
 export async function updateUser(userData: User): Promise<any | null> {
   try {
     const idToken = await getIdToken();
-    console.log("ID Token from updateUser:", idToken ? "Valid token" : "No token");
 
     if (!idToken) {
       console.error("No ID token available in updateUser");
       return null;
     }
 
-    console.log("Sending PUT request with updateUser:", userData);
     const res = await fetch(
       `${API_BASE_URL}/user`,
       {
@@ -37,7 +35,6 @@ export async function updateUser(userData: User): Promise<any | null> {
     }
 
     const data = await res.json();
-    console.log("Update response:", data);
     return data;
   } catch (error) {
     console.error("Error updating product updateUser.ts:", error);

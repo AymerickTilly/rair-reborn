@@ -59,7 +59,8 @@ const applySession = async (session: import('@supabase/supabase-js').Session | n
   }
 
   const user = session.user;
-  const role = user.app_metadata?.role ?? user.user_metadata?.role ?? 'Customer';
+  // app_metadata is only writable server-side. user_metadata is editable by the user, so it is never trusted for roles.
+  const role = user.app_metadata?.role ?? 'Customer';
 
   setUser(user);
   setEmail(user.email ?? null);

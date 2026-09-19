@@ -5,14 +5,12 @@ import { Cart } from "../types/Cart";
 export async function addToCart(cartData: Cart): Promise<{ message: string; item: Cart } | null> {
   try {
     const idToken = await getIdToken();
-    console.log("ID Token from addToCart:", idToken ? "Valid token" : "No token");
 
     if (!idToken) {
       console.error("No ID token available in addToCart");
       throw new Error("No ID token available");
     }
 
-    console.log("Sending POST request with cartData:", cartData);
     const res = await fetch(
       `${API_BASE_URL}/cart`,
       {
@@ -36,7 +34,6 @@ export async function addToCart(cartData: Cart): Promise<{ message: string; item
     }
 
     const data = await res.json();
-    console.log("Add to cart response:", data);
     return data;
   } catch (error) {
     console.error("Error in addToCart.ts:", error);

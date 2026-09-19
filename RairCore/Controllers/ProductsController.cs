@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RairCore.Auth;
 using RairCore.Data;
 using RairCore.Models;
 
@@ -36,6 +37,7 @@ public class ProductsController(AppDbContext db) : ControllerBase
 
     // POST /product
     [HttpPost("product")]
+    [Authorize(Policy = CurrentUser.AdminPolicy)]
     public async Task<IActionResult> Create([FromBody] Product product)
     {
         product.ProductId = Guid.NewGuid().ToString();
@@ -52,11 +54,17 @@ public class ProductsController(AppDbContext db) : ControllerBase
             .FirstOrDefaultAsync(p => p.ProductId == product.ProductId);
         if (existing is null) return NotFound();
 
-        existing.Name = product.Name;
-        existing.Description = product.Description;
-        existing.Category = product.Category;
-        existing.ImageUrl = product.ImageUrl;
-        existing.Price = product.Price;
+        // Checkout and order cancellation still adjust stock from the customer's browser, so customers
+        // may change stock through this endpoint. Only admins may change the product details or price.
+        // TODO: once stock moves server-side into the order endpoints, make this admin-only.
+        if (User.IsAdmin())
+        {
+            existing.Name = product.Name;
+            existing.Description = product.Description;
+            existing.Category = product.Category;
+            existing.ImageUrl = product.ImageUrl;
+            existing.Price = product.Price;
+        }
 
         // Replace stock entries
         db.StockItems.RemoveRange(existing.Stock);
@@ -68,6 +76,7 @@ public class ProductsController(AppDbContext db) : ControllerBase
 
     // DELETE /product?productId=abc
     [HttpDelete("product")]
+    [Authorize(Policy = CurrentUser.AdminPolicy)]
     public async Task<IActionResult> Delete([FromQuery] string productId)
     {
         var product = await db.Products.Include(p => p.Stock)

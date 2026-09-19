@@ -2,11 +2,12 @@ using CloudinaryDotNet;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using RairCore.Auth;
 using RairCore.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Railway injects PORT as an env var — we tell ASP.NET to listen on it.
+// Render injects PORT as an env var — we tell ASP.NET to listen on it.
 // Locally it falls back to the port in launchSettings.json.
 var port = Environment.GetEnvironmentVariable("PORT")
     ?? Environment.GetEnvironmentVariable("HTTP_PORTS")
@@ -43,6 +44,8 @@ var jwk = new JsonWebKey
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Keep claim names as they appear in the token ("sub", "app_metadata") instead of remapping them.
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -55,7 +58,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+// Store-management endpoints require the "Admin" role from the token's app_metadata.
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(CurrentUser.AdminPolicy, policy => policy.RequireAssertion(ctx => ctx.User.IsAdmin()));
 
 // Register Cloudinary as a singleton — one instance shared across all requests.
 // In C#, a singleton means it's created once and reused (like a module-level object in JS).

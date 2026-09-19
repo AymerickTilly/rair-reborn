@@ -5,7 +5,6 @@ import { API_BASE_URL } from "./config"; // Update the path if needed
 export async function addUser(userData: any): Promise<any | null> {
   try {
     const idToken = await getIdToken();
-    console.log("ID Token from addUser:", idToken);
 
     if (!idToken) {
       console.error("No ID token available");
