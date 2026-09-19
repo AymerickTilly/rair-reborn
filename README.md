@@ -49,7 +49,7 @@ This version keeps the same concept (a clothing store), but rebuilds every layer
 | Supabase JS client | Auth (sign in, OAuth, password reset) |
 | Custom CSS + OKLCH tokens | Design system (no CSS framework) |
 | Barlow Condensed + Jost | Display and body fonts |
-| Bootstrap 5 | Modal only (quick-view, add-to-cart) |
+| Bootstrap Reboot | Base element styles only. Modals are a small native `<dialog>` component |
 | Cloudinary | Image URLs served via CDN |
 
 ### Backend: `RairCore/`
@@ -123,7 +123,9 @@ Users (UserId text PK, Username, Address)
 
 ## API Endpoints
 
-All routes require a valid Supabase JWT via `Authorization: Bearer <token>`.
+All routes require a valid Supabase JWT via `Authorization: Bearer <token>`, except `GET /health`.
+
+Store management (create, update and delete products, list users, delete orders, and the image endpoints) also requires the Admin role, which is read from the token's `app_metadata.role` (`user_metadata` is user-editable and is never trusted). Customers can only read and change their own orders, cart and profile.
 
 | Method | Endpoint | Action |
 |---|---|---|
@@ -154,11 +156,11 @@ All routes require a valid Supabase JWT via `Authorization: Bearer <token>`.
 
 **Supabase instead of Cognito:** Cognito JWTs are AWS-specific and require the Amplify SDK. Supabase issues standard ES256 JWTs that any JWT library can validate, including .NET's built-in middleware. No vendor SDK required on the backend.
 
-**Render instead of Lambda:** Lambda enforced a one-function-per-endpoint model with no shared types, no ORM, and no structured error handling. A single ASP.NET Core container on Render runs all endpoints in one process with full access to EF Core, dependency injection, and C# type safety. Cold starts are handled by Render's keep-alive.
+**Render instead of Lambda:** Lambda enforced a one-function-per-endpoint model with no shared types, no ORM, and no structured error handling. A single ASP.NET Core container on Render runs all endpoints in one process with full access to EF Core, dependency injection, and C# type safety. The free tier sleeps when idle, so the first request after a quiet period is slow. The frontend pings the unauthenticated `/health` endpoint as soon as it loads to wake the API, and an external uptime pinger can keep it awake.
 
 **PostgreSQL instead of DynamoDB:** Orders containing products with sizes and quantities are inherently relational. DynamoDB required denormalizing everything into flat documents. PostgreSQL enforces relationships with foreign keys and lets EF Core generate all SQL.
 
-**Cloudinary instead of S3:** S3 requires IAM roles, presigned URLs, and bucket policies. Cloudinary accepts a base64 upload and returns a public CDN URL. `f_auto` and `q_auto` handle format conversion and compression automatically.
+**Cloudinary instead of S3:** S3 requires IAM roles, presigned URLs, and bucket policies. Cloudinary accepts a base64 upload and returns a public CDN URL. The frontend requests images with `f_auto`, `q_auto` and a width limit (`c_limit,w_N`), so a 2.4 MB original PNG is served as a ~30 kB WebP.
 
 **OKLCH design tokens:** The entire color system is defined in OKLCH (`--rair-bg`, `--rair-primary`, `--rair-muted`, `--rair-border`, `--rair-ink`). OKLCH provides perceptually uniform lightness, making it easier to build accessible contrast ratios without guessing.
 
@@ -172,7 +174,9 @@ PROCESSING → SHIPPED → DELIVERED
      └── CANCELLED (from PROCESSING only, by customer or admin)
 ```
 
-Cancelling an order restores stock for each line item. Admin can update status from any state; customers can only cancel while PROCESSING.
+Placing an order happens in one database transaction: the API prices the items from the catalogue, checks and decrements stock with an atomic conditional update (two buyers cannot take the last item), and clears the ordered cart items. If any item is short, nothing changes.
+
+Cancelling an order, by the customer or an admin, puts the items back in stock exactly once. A cancelled order cannot be reopened. Admins can move an order between the other statuses; customers can only cancel their own order while it is PROCESSING.
 
 ---
 
@@ -180,7 +184,10 @@ Cancelling an order restores stock for each line item. Admin can update status f
 
 ```
 rair-reborn/
+├── Dockerfile                         # Container for Render
 ├── RairCore/                          # ASP.NET Core Web API
+│   ├── Auth/
+│   │   └── CurrentUser.cs             # Reads the user id and Admin role from the JWT
 │   ├── Controllers/
 │   │   ├── ProductsController.cs      # /products + /product
 │   │   ├── UsersController.cs         # /users + /user
@@ -190,18 +197,19 @@ rair-reborn/
 │   ├── Models/
 │   │   ├── Product.cs + StockItem.cs
 │   │   ├── User.cs
-│   │   ├── Cart.cs + CartItem.cs
+│   │   ├── Cart.cs
 │   │   └── Order.cs + OrderProduct.cs
 │   ├── Data/
 │   │   └── AppDbContext.cs            # EF Core context
-│   ├── Migrations/                    # Auto-generated migration files
-│   ├── Dockerfile                     # Container for Render
+│   ├── Migrations/                    # EF Core migrations
+│   ├── migration.sql                  # Idempotent SQL of all migrations (run in Supabase)
 │   └── Program.cs                     # Entry point + middleware pipeline
 └── rair-frontend/                     # React frontend
     ├── src/
     │   ├── pages/                     # Route-level components
     │   ├── components/                # Shared UI components
     │   ├── api/                       # Fetch wrappers for each endpoint
+    │   ├── lib/                       # Supabase client, Cloudinary image URLs, shared options
     │   ├── auth/                      # Supabase auth helpers + Zustand store
     │   ├── schemas/                   # Zod validation schemas
     │   ├── types/                     # TypeScript interfaces
@@ -219,20 +227,23 @@ cd RairCore
 
 # Create appsettings.json with your credentials (never commit this file)
 # Required keys: ConnectionStrings:DefaultConnection, Supabase:Url,
-# Supabase:Key, Supabase:JwtSecret, Cloudinary:CloudName/ApiKey/ApiSecret
+# Cloudinary:CloudName / ApiKey / ApiSecret
+# Optional: AllowedOrigins (the frontend origin for CORS, default http://localhost:5173)
 
 dotnet run
-# → https://localhost:5067
+# Listens on the PORT environment variable, default 8080 → http://localhost:8080
 ```
+
+Apply `RairCore/migration.sql` to the database (Supabase SQL editor) to create the tables and indexes.
 
 **Frontend:**
 ```bash
 cd rair-frontend
 
-# Create .env with:
+# Create .env (see .env_example) with:
 # VITE_SUPABASE_URL=...
-# VITE_SUPABASE_ANON_KEY=...
-# VITE_API_BASE_URL=https://localhost:5067  (or Render URL for prod)
+# VITE_SUPABASE_PUBLISHABLE_KEY=...
+# VITE_API_URL=http://localhost:8080   (optional, defaults to the deployed Render API)
 
 npm install
 npm run dev
