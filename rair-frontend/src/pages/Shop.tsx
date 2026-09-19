@@ -1,3 +1,4 @@
+import { cldImage } from '../lib/cloudinary';
 import { useEffect, useState } from "react";
 import { loadProducts } from "../api/loadProducts";
 import Spinner from "../components/Spinner";
@@ -145,7 +146,7 @@ const Shop = () => {
           {filtered.length === 0 && (
             <p className="shop__empty">No products found</p>
           )}
-          {filtered.map((product) => (
+          {filtered.map((product, index) => (
             <button
               key={product.productId}
               type="button"
@@ -158,9 +159,10 @@ const Shop = () => {
               <div className="product-card__img-wrap">
                 <img
                   className="product-card__img"
-                  src={product.imageUrl}
+                  src={cldImage(product.imageUrl, 600)}
                   alt={product.name}
-                  loading="lazy"
+                  loading={index < 4 ? "eager" : "lazy"}
+                  fetchPriority={index < 4 ? "high" : undefined}
                   width={300}
                   height={400}
                 />
@@ -212,7 +214,7 @@ const Shop = () => {
             <Modal.Body>
               <img
                 className="shop-modal__img"
-                src={selectedProduct.imageUrl}
+                src={cldImage(selectedProduct.imageUrl, 800)}
                 alt={selectedProduct.name}
               />
               <p className="shop-modal__price">${selectedProduct.price}</p>

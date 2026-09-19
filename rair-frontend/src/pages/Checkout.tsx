@@ -1,3 +1,4 @@
+import { cldImage } from '../lib/cloudinary';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Modal } from 'react-bootstrap';
@@ -99,7 +100,7 @@ const Checkout = () => {
             {products.map(p => (
               <div key={p.id} className="checkout-item">
                 <img
-                  src={p.image}
+                  src={cldImage(p.image, 200)}
                   alt={p.name}
                   className="checkout-item__img"
                   loading="lazy"

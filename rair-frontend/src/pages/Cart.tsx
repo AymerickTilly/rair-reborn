@@ -1,3 +1,4 @@
+import { cldImage } from '../lib/cloudinary';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../auth/AuthStore';
@@ -98,7 +99,7 @@ const CartPage: React.FC = () => {
 
                   <div className="cart-item__img-wrap">
                     <img
-                      src={item.imageUrl}
+                      src={cldImage(item.imageUrl, 240)}
                       alt={item.name}
                       className="cart-item__img"
                       loading="lazy"

@@ -1,3 +1,4 @@
+import { cldImage } from '../lib/cloudinary';
 import { Product } from "../types/Product";
 
 interface ProductCardProps {
@@ -10,7 +11,7 @@ const ProductCard = ({ product, openModal, handleDelete }: ProductCardProps) => 
   <div className="admin-product-card">
     <div className="admin-product-card__img-wrap">
       <img
-        src={product.imageUrl}
+        src={cldImage(product.imageUrl, 500)}
         alt={product.name}
         className="admin-product-card__img"
         loading="lazy"

@@ -1,3 +1,4 @@
+import { cldImage } from '../lib/cloudinary';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '../auth/AuthStore';
@@ -158,7 +159,7 @@ const ListOrdersPage = () => {
                 {o.products.map(p => (
                   <div key={`${p.id}-${p.size}`} className="order-product">
                     <img
-                      src={p.image}
+                      src={cldImage(p.image, 200)}
                       alt={p.name}
                       className="order-product__img"
                       loading="lazy"

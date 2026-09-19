@@ -1,3 +1,4 @@
+import { cldImage } from '../lib/cloudinary';
 import React from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { addItemSchema, TAddItemSchema } from "../schemas/TaddItemSchemas";
@@ -186,7 +187,7 @@ const AddItemPage = () => {
                   className={`image-picker__btn${selectedImageUrl === url ? ' image-picker__btn--selected' : ''}`}
                   onClick={() => setSelectedImageUrl(url)}
                 >
-                  <img src={url} alt="" className="image-picker__img" loading="lazy" />
+                  <img src={cldImage(url, 240)} alt="" className="image-picker__img" loading="lazy" />
                 </button>
               ))}
             </div>
@@ -195,7 +196,7 @@ const AddItemPage = () => {
           {selectedImageUrl && (
             <div className="image-picker__preview">
               <p className="rair-label">Selected</p>
-              <img src={selectedImageUrl} alt="Selected product" className="image-picker__preview-img" />
+              <img src={cldImage(selectedImageUrl, 300)} alt="Selected product" className="image-picker__preview-img" />
             </div>
           )}
 

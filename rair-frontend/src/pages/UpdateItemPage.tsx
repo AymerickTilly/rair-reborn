@@ -1,3 +1,4 @@
+import { cldImage } from '../lib/cloudinary';
 import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { Modal } from "react-bootstrap";
@@ -289,7 +290,7 @@ const UpdateItemPage = () => {
                     className={`image-picker__btn${selectedImageUrl === url ? ' image-picker__btn--selected' : ''}`}
                     onClick={() => setSelectedImageUrl(url)}
                   >
-                    <img src={url} alt="" className="image-picker__img" loading="lazy" />
+                    <img src={cldImage(url, 240)} alt="" className="image-picker__img" loading="lazy" />
                   </button>
                 ))}
               </div>
@@ -298,7 +299,7 @@ const UpdateItemPage = () => {
             {selectedImageUrl && (
               <div className="image-picker__preview">
                 <p className="rair-label">Selected</p>
-                <img src={selectedImageUrl} alt="Selected" className="image-picker__preview-img" />
+                <img src={cldImage(selectedImageUrl, 300)} alt="Selected" className="image-picker__preview-img" />
               </div>
             )}
 
