@@ -1,29 +1,32 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import Login from "./pages/Login";
-import Profile from "./pages/Profile";
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
-import RegisterForm from './pages/Register';
-import AdminPage from './pages/AdminPage';
-import Shop from './pages/Shop';
-import Cart from './pages/Cart';
-import Checkout from './pages/Checkout';
 import NavigationBar from './components/Navbar';
 import PrivateRoutes from './routes/PrivateRoutes';
 import ProtectedRoutes from './routes/ProtectedRoutes';
-import ConfirmRegisterForm from './pages/ConfirmRegister';
 import ConfirmRegisterRoute from './routes/ConfirmRegisterRoute';
-import { useEffect } from 'react';
 import { initAuth, useAuthStore } from './auth/AuthStore';
 import AuthenticationRoutes from './routes/AuthenticationRoutes';
 import LocationManager from './auth/LocationManager';
-import AskResetCode from './pages/AskResetCode';
-import ResetPassword from './pages/ResetPassword';
 import ResetPasswordRoute from './routes/ResetPasswordRoute';
-import AddItemPage from './pages/AddItemPage';
-import UpdateItemPage from './pages/UpdateItemPage';
-import ListOrdersPage from './pages/ListOrdersPage';
-import Home from './pages/Home';
 import ToastContainer from './components/ToastContainer';
+import Spinner from './components/Spinner';
+
+// Each page is its own chunk, loaded when the route is first visited, so a customer never downloads
+// the admin screens (and the reverse).
+const Login = lazy(() => import('./pages/Login'));
+const RegisterForm = lazy(() => import('./pages/Register'));
+const ConfirmRegisterForm = lazy(() => import('./pages/ConfirmRegister'));
+const AskResetCode = lazy(() => import('./pages/AskResetCode'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Home = lazy(() => import('./pages/Home'));
+const Shop = lazy(() => import('./pages/Shop'));
+const Cart = lazy(() => import('./pages/Cart'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const ListOrdersPage = lazy(() => import('./pages/ListOrdersPage'));
+const Profile = lazy(() => import('./pages/Profile'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const AddItemPage = lazy(() => import('./pages/AddItemPage'));
+const UpdateItemPage = lazy(() => import('./pages/UpdateItemPage'));
 
 const App = () => {
 
@@ -40,6 +43,7 @@ const App = () => {
       <BrowserRouter>
         <LocationManager />
           {user && <NavigationBar />}
+          <Suspense fallback={<Spinner />}>
           <Routes>
             {/* Public (Unauthenticated) Routes */}
             <Route element={<AuthenticationRoutes />}>
@@ -83,6 +87,7 @@ const App = () => {
             <Route path="*" element={<Navigate to="/" />} />
           </Route>
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </>
   );
