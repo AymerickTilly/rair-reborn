@@ -124,3 +124,28 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260919231240_AddUserIdIndexes') THEN
+    CREATE INDEX "IX_Orders_UserId" ON "Orders" ("UserId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260919231240_AddUserIdIndexes') THEN
+    CREATE INDEX "IX_Carts_UserId" ON "Carts" ("UserId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260919231240_AddUserIdIndexes') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20260919231240_AddUserIdIndexes', '10.0.9');
+    END IF;
+END $EF$;
+COMMIT;
+

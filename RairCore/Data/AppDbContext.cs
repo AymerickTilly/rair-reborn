@@ -33,5 +33,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasMany(o => o.Products)
             .WithOne()
             .HasForeignKey(op => op.OrderId);
+
+        // Customers only ever load their own orders and cart, so both are looked up by user id
+        modelBuilder.Entity<Order>().HasIndex(o => o.UserId);
+        modelBuilder.Entity<Cart>().HasIndex(c => c.UserId);
     }
 }
