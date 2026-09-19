@@ -9,14 +9,11 @@ import { updateProduct } from "../api/updateProduct";
 import { deleteProduct } from "../api/deleteProduct";
 import ProductCard from "../components/ProductCard";
 import { Product } from "../types/Product";
-import { getIdToken } from "../auth/AuthStore";
-import { API_BASE_URL } from "../api/config";
+import { loadFolderImages } from "../api/loadImages";
+import { FOLDERS, SIZES } from "../lib/productOptions";
 import { useNavigate } from "react-router";
 import { useToastStore } from "../stores/toastStore";
 import Spinner from "../components/Spinner";
-
-const FOLDERS = ["crew-neck", "hoodies", "knitwear", "shirts"];
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 
 const UpdateItemPage = () => {
   const navigate = useNavigate();
@@ -53,12 +50,7 @@ const UpdateItemPage = () => {
   const loadImages = async (f: string) => {
     setLoadingImages(true);
     try {
-      const token = await getIdToken();
-      const res = await fetch(`${API_BASE_URL}/images?folder=${f}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setFolderImages(Array.isArray(data) ? data : (data.urls ?? []));
+      setFolderImages(await loadFolderImages(f));
     } catch (e) { console.error(e); }
     finally { setLoadingImages(false); }
   };

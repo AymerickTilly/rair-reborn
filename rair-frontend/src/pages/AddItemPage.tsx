@@ -5,12 +5,9 @@ import { addItemSchema, TAddItemSchema } from "../schemas/TaddItemSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addProduct } from "../api/addProduct";
 import { useNavigate } from "react-router";
-import { getIdToken } from "../auth/AuthStore";
-import { API_BASE_URL } from "../api/config";
+import { loadFolderImages } from "../api/loadImages";
+import { FOLDERS, SIZES } from "../lib/productOptions";
 import { useToastStore } from "../stores/toastStore";
-
-const FOLDERS = ["crew-neck", "hoodies", "knitwear", "shirts"];
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 
 const AddItemPage = () => {
   const [selectedImageUrl, setSelectedImageUrl] = React.useState<string | null>(null);
@@ -23,12 +20,7 @@ const AddItemPage = () => {
   const loadImages = async (f: string) => {
     setLoadingImages(true);
     try {
-      const token = await getIdToken();
-      const res = await fetch(`${API_BASE_URL}/images?folder=${f}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setFolderImages(Array.isArray(data) ? data : (data.urls ?? []));
+      setFolderImages(await loadFolderImages(f));
     } catch (e) {
       console.error(e);
     } finally {
