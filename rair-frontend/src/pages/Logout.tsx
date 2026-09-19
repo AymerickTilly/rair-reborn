@@ -1,4 +1,3 @@
-import { Nav } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from '../auth/SignOut';  // Import the signOut function
 
@@ -15,9 +14,9 @@ const LogoutLink = () => {
   };
 
   return (
-    <Nav.Link as="span" onClick={handleLogout} style={{ cursor: 'pointer' }}>
+    <button type="button" className="rair-nav__link rair-nav__link--button" onClick={handleLogout}>
       Logout
-    </Nav.Link>
+    </button>
   );
 };
 

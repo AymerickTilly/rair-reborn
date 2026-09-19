@@ -70,6 +70,14 @@
   padding-bottom: 3px;
   transition: color 0.2s ease;
 }
+/* Logout is a button (it performs an action, not a navigation) styled like the links */
+.rair-nav__link--button {
+  background: none;
+  border: 0;
+  padding-top: 0;
+  padding-inline: 0;
+  cursor: pointer;
+}
 .rair-nav__link::after {
   content: '';
   position: absolute;
