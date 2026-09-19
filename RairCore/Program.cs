@@ -19,7 +19,6 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 // This is like setting up middleware in Express, but more structured.
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
 
 // Brotli/gzip for JSON responses (the product and order lists are the large ones)
 builder.Services.AddResponseCompression(options => options.EnableForHttps = true);
@@ -90,9 +89,6 @@ builder.Services.AddCors(options =>
 // --- Middleware pipeline ---
 // Order matters here: each request flows through these in sequence.
 var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
-    app.MapOpenApi();
 
 app.UseResponseCompression();
 app.UseCors("Frontend");
