@@ -1,8 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+// Only Bootstrap's Reboot (base element normalisation). No components, grid or utilities are used.
+import 'bootstrap/dist/css/bootstrap-reboot.min.css';
 import './styles/tokens.css';
 import { warmUpApi } from './api/warmUp';
 
