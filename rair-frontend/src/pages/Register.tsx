@@ -2,7 +2,7 @@ import { handleSignUp } from '../auth/SignUp';
 import { TsignUpSchema, signUpSchema } from '../schemas/TsignUpSchemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { useAuthStore } from '../auth/AuthStore';
 import { addUser } from '../api/addUser';
 

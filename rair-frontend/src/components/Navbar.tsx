@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router';
 import { useAuthStore } from '../auth/AuthStore';
 import LogoutLink from '../pages/Logout';
 import './Navbar.css';

@@ -1,6 +1,6 @@
 import { cldImage } from '../lib/cloudinary';
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { useAuthStore } from '../auth/AuthStore';
 import Modal from '../components/Modal';
 import Spinner from '../components/Spinner';

@@ -11,7 +11,7 @@ import ProductCard from "../components/ProductCard";
 import { Product } from "../types/Product";
 import { getIdToken } from "../auth/AuthStore";
 import { API_BASE_URL } from "../api/config";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useToastStore } from "../stores/toastStore";
 import Spinner from "../components/Spinner";
 

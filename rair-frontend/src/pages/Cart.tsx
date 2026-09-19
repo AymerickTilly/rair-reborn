@@ -1,6 +1,6 @@
 import { cldImage } from '../lib/cloudinary';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useAuthStore } from '../auth/AuthStore';
 import { loadCartsByID } from '../api/loadCarts';
 import { Cart } from '../types/Cart';

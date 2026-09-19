@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { signOut } from '../auth/SignOut';  // Import the signOut function
 
 const LogoutLink = () => {

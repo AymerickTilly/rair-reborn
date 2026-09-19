@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router';
 import { useAuthStore } from '../auth/AuthStore';
 import Spinner from '../components/Spinner';
 

@@ -1,5 +1,5 @@
 import { cldImage } from '../lib/cloudinary';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';
 import Modal from '../components/Modal';
 import { useAuthStore } from '../auth/AuthStore';

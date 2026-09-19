@@ -2,7 +2,7 @@ import { TsignInSchema, signInSchema } from "../schemas/TsignInSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { signIn } from "../auth/SignIn";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { useAuthStore } from "../auth/AuthStore";
 import { supabase } from "../lib/supabase";
 
